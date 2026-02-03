@@ -36,6 +36,16 @@ class CustomerController extends Controller
         $validated['reg_no'] = \App\Models\Customer::generateRegNo();
         $validated['barcode'] = \App\Models\Customer::generateBarcode();
 
+        if ($request->wantsJson() || $request->ajax()) {
+            $customer = \App\Models\Customer::create($validated);
+            return response()->json([
+                'success' => true,
+                'message' => 'Customer created successfully!',
+                'redirect' => route('customers.index'),
+                'customer' => $customer
+            ]);
+        }
+
         \App\Models\Customer::create($validated);
 
         return redirect()->route('customers.index')->with('success', 'Customer created successfully with barcode.');

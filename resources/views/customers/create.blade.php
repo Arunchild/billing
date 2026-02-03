@@ -17,7 +17,7 @@
     <div class="col-md-8 mx-auto">
         <div class="card">
             <div class="card-body">
-                <form action="{{ route('customers.store') }}" method="POST">
+                <form action="{{ route('customers.store') }}" method="POST" id="ajaxForm">
                     @csrf
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -49,4 +49,46 @@
         </div>
     </div>
 </div>
+@section('scripts')
+<script>
+    $(document).ready(function() {
+        $('#ajaxForm').on('submit', function(e) {
+            e.preventDefault();
+            let form = $(this);
+            let btn = form.find('button[type="submit"]');
+            let originalText = btn.html();
+            
+            btn.prop('disabled', true).html('<i class="fas fa-circle-notch fa-spin"></i> Saving...');
+            
+            $.ajax({
+                url: form.attr('action'),
+                method: 'POST',
+                data: form.serialize(),
+                success: function(response) {
+                    if(response.success) {
+                        toastr.success(response.message);
+                        form[0].reset();
+                        // Reset Select2 if any
+                        $('.select2').val(null).trigger('change');
+                        // Focus first input
+                        form.find('input:visible:first').focus();
+                    }
+                },
+                error: function(xhr) {
+                    if(xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        $.each(errors, function(key, value) {
+                            toastr.error(value[0]);
+                        });
+                    } else {
+                        toastr.error('An error occurred.');
+                    }
+                },
+                complete: function() {
+                    btn.prop('disabled', false).html(originalText);
+                }
+            });
+        });
+    });
+</script>
 @endsection

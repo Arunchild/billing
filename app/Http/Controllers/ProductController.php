@@ -39,6 +39,16 @@ class ProductController extends Controller
         $data['not_for_sale'] = $request->has('not_for_sale');
         $data['enable_tracking'] = $request->has('enable_tracking');
 
+        if ($request->wantsJson() || $request->ajax()) {
+            $product = \App\Models\Product::create($data);
+            return response()->json([
+                'success' => true,
+                'message' => 'Product created successfully!',
+                'redirect' => route('products.index'),
+                'product' => $product
+            ]);
+        }
+
         \App\Models\Product::create($data);
 
         return redirect()->route('products.index')->with('success', 'Product created successfully.');

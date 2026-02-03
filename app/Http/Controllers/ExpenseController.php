@@ -26,6 +26,15 @@ class ExpenseController extends Controller
             'description' => 'nullable|string',
         ]);
 
+        if ($request->wantsJson() || $request->ajax()) {
+            \App\Models\Expense::create($validated);
+            return response()->json([
+                'success' => true,
+                'message' => 'Expense created successfully!',
+                'redirect' => route('expenses.index')
+            ]);
+        }
+
         \App\Models\Expense::create($validated);
 
         return redirect()->route('expenses.index')->with('success', 'Expense created successfully.');

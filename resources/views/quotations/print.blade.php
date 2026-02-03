@@ -1,126 +1,163 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Service Quotation</title>
+    <meta charset="utf-8">
+    <title>Quotation - {{ $quotation->quotation_number }}</title>
     <style>
-        @page { size: A4; margin: 10mm; }
-        body { font-family: Arial, sans-serif; font-size: 10pt; margin: 0; padding: 20px; }
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-        .company-name { font-size: 16pt; font-weight: bold; margin-bottom: 5px; }
-        .title { font-size: 14pt; font-weight: bold; margin: 20px 0; text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-        th, td { border: 1px solid #000; padding: 8px; text-align: left; }
-        th { background-color: #f0f0f0; font-weight: bold; }
+        body { font-family: 'Times New Roman', Times, serif; font-size: 14px; line-height: 1.5; color: #000; }
+        .container { width: 100%; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .no-print { margin-bottom: 20px; text-align: right; }
+        
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { margin: 0; font-size: 24px; text-decoration: underline; }
+        
+        .table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .table th, .table td { border: 1px solid #000; padding: 8px; text-align: left; }
+        .table th { background-color: #f0f0f0; -webkit-print-color-adjust: exact; }
         .text-right { text-align: right; }
-        .info-section { margin: 20px 0; }
-        .info-row { margin: 8px 0; }
-        .payment-box { border: 1px solid #000; padding: 15px; margin: 20px 0; }
-        .validity-box { border: 1px solid #000; padding: 15px; margin: 20px 0; }
-        .signature { margin-top: 60px; text-align: right; }
+        .text-center { text-align: center; }
+        
+        .correspondence { margin-top: 20px; border: 1px solid #000; display: flex; }
+        .corr-col { width: 50%; padding: 10px; }
+        .corr-col.right { border-left: 1px solid #000; }
+        
+        .company-header { display: flex; margin-bottom: 20px; align-items: flex-start; }
+        .logo-img { max-width: 150px; margin-right: 20px; }
+        
+        .payment-mode { margin-top: 20px; border: 1px solid #000; padding: 10px; }
+        .validity { margin-top: 20px; font-weight: bold; }
+        
+        .footer { margin-top: 50px; text-align: right; }
+        
         @media print {
-            body { padding: 0; }
             .no-print { display: none; }
+            body { margin: 0; }
+            .container { max-width: 100%; width: 100%; padding: 0; }
         }
     </style>
 </head>
 <body>
-    <div class="no-print" style="margin-bottom: 10px;">
-        <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer;">
-            Print Quotation
-        </button>
+    <div class="no-print">
+        <button onclick="window.print()" style="padding: 10px 20px; background: #4f46e5; color: white; border: none; cursor: pointer; border-radius: 5px;">Print Quotation</button>
+        <button onclick="window.close()" style="padding: 10px 20px; background: #64748b; color: white; border: none; cursor: pointer; border-radius: 5px; margin-left: 10px;">Close</button>
     </div>
 
-    <div class="header">
-        <div class="company-name">BIOFIX HEALTHCARE PVT. LTD.</div>
-        <div style="font-size: 9pt;">27/18A, Sathia Complex, Sinclair Street, Marthandam (PO), PIN: 629165</div>
-        <div style="font-size: 9pt;">Mobile: +91 9442384497 | Email: info@biofixhealthcare.com</div>
-    </div>
+    <div class="container">
+        <!-- Logo and Company Info Header for print -->
+        <div class="company-header">
+             <img src="{{ asset('images/biofix-logo.jpg') }}" alt="BIOFIX" class="logo-img">
+             <div>
+                <h2 style="margin: 00;">Biofix Healthcare Pvt. Ltd.</h2>
+                <div>
+                    27/18A, Sathia Complex, Sinclair Street,<br>
+                    Marthandam (PO) - 629165<br>
+                    Mobile: +91 9442384497<br>
+                    E-Mail: support@biofixhealthcare.com
+                </div>
+             </div>
+        </div>
 
-    <div class="title">Assistive Technology Service Proposal</div>
+        <div class="header">
+            <h1>Assistive Technology Service Proposal</h1>
+        </div>
 
-    <div class="info-section">
-        <div class="info-row"><strong>Date:</strong> {{ date('d/m/Y') }}</div>
-        <div class="info-row"><strong>Quotation Reference Number:</strong> QT-{{ str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT) }}</div>
-    </div>
+        <!-- Meta Info -->
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <div><strong>Quotation Reference Number:</strong> {{ $quotation->quotation_number }}</div>
+            <div><strong>Date :</strong> {{ \Carbon\Carbon::parse($quotation->quotation_date)->format('d-m-Y') }}</div>
+        </div>
 
-    <table style="margin-bottom: 0;">
-        <thead>
-            <tr>
-                <th style="width: 60%">Description</th>
-                <th style="width: 15%" class="text-right">Unit</th>
-                <th style="width: 25%" class="text-right">Sub Total (INR)</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td colspan="3"><strong>Provision For</strong></td>
-            </tr>
-            <tr>
-                <td>Item Description Here</td>
-                <td class="text-right">1</td>
-                <td class="text-right">0.00</td>
-            </tr>
-            <tr>
-                <td colspan="3" style="height: 200px;"></td>
-            </tr>
-            <tr>
-                <td colspan="2"><strong>Taxes & Others</strong></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td colspan="2">CGST @ 2.5%</td>
-                <td class="text-right">0.00</td>
-            </tr>
-            <tr>
-                <td colspan="2">SGST @ 2.5%</td>
-                <td class="text-right">0.00</td>
-            </tr>
-            <tr>
-                <td colspan="2"><strong>Grand Total (In Words)</strong></td>
-                <td class="text-right"><strong>₹ 0.00</strong></td>
-            </tr>
-        </tbody>
-    </table>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="width: 60%;">Description</th>
+                    <th style="width: 10%;">Unit</th>
+                    <th style="width: 30%;" class="text-right">Sub Total (INR)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="3" style="background: #fafafa; font-weight: bold;">Provision For</td>
+                </tr>
+                @foreach($quotation->items as $item)
+                <tr>
+                    <td>{{ $item->product_name }}</td>
+                    <td class="text-center">{{ $item->quantity }}</td>
+                    <td class="text-right">{{ number_format($item->total, 2) }}</td>
+                </tr>
+                @endforeach
+                
+                <tr>
+                    <td><strong>Taxes & Others</strong></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>CGST @ 2.5%</td>
+                    <td></td>
+                    <td class="text-right">{{ number_format($quotation->tax_total / 2, 2) }}</td>
+                </tr>
+                <tr>
+                    <td>SGST @ 2.5%</td>
+                    <td></td>
+                    <td class="text-right">{{ number_format($quotation->tax_total / 2, 2) }}</td>
+                </tr>
+                <tr>
+                    <td class="text-right" colspan="2"><strong>Grand Total</strong></td>
+                    <td class="text-right"><strong>{{ number_format($quotation->total, 2) }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div>
+            <strong>Grand Total (In Words) -</strong> <span style="text-transform: capitalize;">
+                @if(class_exists('NumberFormatter'))
+                    {{ \NumberFormatter::create('en_IN', \NumberFormatter::SPELLOUT)->format($quotation->total) }} Rupees Only
+                @else
+                    {{ $quotation->total }} Rupees Only
+                @endif
+            </span>
+        </div>
 
-    <table style="margin-top: 20px;">
-        <tr>
-            <th style="width: 50%">Correspondence: Client</th>
-            <th style="width: 50%">Service Provider</th>
-        </tr>
-        <tr>
-            <td style="vertical-align: top; height: 80px;">
-                <strong>Name:</strong><br>
-                <strong>Address:</strong><br>
-            </td>
-            <td style="vertical-align: top;">
-                <strong>Biofix Healthcare</strong><br>
-                27/18A, Sathia Complex<br>
-                Sinclair Street, Marthandam (PO)<br>
-                PIN: 629165<br>
-                <strong>Mobile:</strong> +91 9442384497<br>
-                <strong>E-Mail:</strong> info@biofixhealthcare.com
-            </td>
-        </tr>
-    </table>
+        <div class="correspondence">
+            <div class="corr-col">
+                <strong>Correspondence : Client</strong><br><br>
+                <strong>{{ $quotation->customer->name }}</strong><br>
+                {!! nl2br(e($quotation->customer->address)) !!}<br>
+                Ph: {{ $quotation->customer->phone }}
+            </div>
+            <div class="corr-col right">
+                <strong>Correspondence : Service Provider</strong><br><br>
+                <strong>Biofix Healthcare</strong>, 27/18A,<br>
+                Sathia Complex, Sinclair Street, Marthandam (PO)<br>
+                PIN : 629165<br>
+                Mobile : +91 9442384497<br>
+                E-Mail : support@biofixhealthcare.com
+            </div>
+        </div>
 
-    <div class="payment-box">
-        <strong>Payment Mode</strong><br><br>
-        • Cheque / DD Payable to "Biofix Healthcare Pvt. Ltd."<br>
-        • Master / Visa credit or Debit<br>
-        • Direct Cash Payment<br>
-        • NEFT/RTGS: Biofix Healthcare Pvt. Ltd<br>
-        &nbsp;&nbsp;&nbsp;A/C no: 8098880196, Indian Bank, Marthandam Branch<br>
-        &nbsp;&nbsp;&nbsp;IFSC Code: IDIB000M218
-    </div>
-
-    <div class="validity-box">
-        <strong>Validity</strong><br><br>
-        The Proposal is valid for 30 days from the date of issue.<br><br>
-        <em>Thank you for enquiring with us.</em>
-    </div>
-
-    <div class="signature">
-        BIOFIX Authorized Signature: ______________________
+        <div class="payment-mode">
+            <strong>Payment Mode</strong><br>
+            <ul>
+                <li>Cheque / DD Payable to “Biofix Healthcare Pvt. Ltd.”</li>
+                <li>Master / Visa credit or Debit</li>
+                <li>Direct Cash Payment</li>
+                <li>NEFT/RTGS : Biofix Healthcare Pvt. Ltd, A/C no: 8098880196, Indian Bank, Marthandam Branch.<br>
+                    IFSC Code: IDIB000M218</li>
+            </ul>
+        </div>
+        
+        <div class="validity">
+            Validity: <span style="font-weight: normal;">The Proposal is valid for 30 days from the date of issue.</span>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            Thank you for enquiring with us.
+        </div>
+        
+        <div class="footer">
+            <p>BIOFIX Authorized Signature:______________________</p>
+        </div>
     </div>
 </body>
 </html>

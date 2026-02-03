@@ -1,7 +1,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ config('app.name', 'Hitech BillSoft Clone') }}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{{ config('app.name', 'AVP Soft') }}</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -213,15 +214,162 @@
 <!-- Sidebar -->
 <nav class="sidebar">
     <div class="sidebar-header">
-        <h2>Hitech <span style="font-weight:300;">BillSoft</span></h2>
-        <div class="version">Version 9.2.4.15 Lite</div>
+        <h2>AVP <span style="font-weight:300;">Soft</span></h2>
+        <div class="version">1.0</div>
     </div>
     
+    <style>
+        /* Additional Sidebar Submenu Styles */
+        .sidebar-menu .submenu {
+            background-color: rgba(0, 0, 0, 0.2);
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar-menu .submenu li a {
+            padding-left: 45px;
+            font-size: 0.8rem;
+        }
+        .sidebar-menu .submenu .submenu li a {
+            padding-left: 65px;
+        }
+        .sidebar-menu a[data-bs-toggle="collapse"] {
+            position: relative;
+        }
+        .sidebar-menu a[data-bs-toggle="collapse"]::after {
+            content: "\f107";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: transform 0.3s;
+        }
+        .sidebar-menu a[data-bs-toggle="collapse"][aria-expanded="true"]::after {
+            transform: translateY(-50%) rotate(180deg);
+        }
+    </style>
     <ul class="sidebar-menu">
         <li><a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}"><i class="fas fa-th-large"></i> Dashboard</a></li>
-        <li><a href="{{ route('invoices.create') }}" class="{{ request()->routeIs('invoices.create') ? 'active' : '' }}"><i class="fas fa-file-invoice"></i> Sale</a></li>
-        <li><a href="{{ route('onlinestore.index') }}" class="{{ request()->routeIs('onlinestore.*') ? 'active' : '' }}"><i class="fas fa-shopping-cart"></i> Online Store</a></li>
-        <li><a href="{{ route('purchases.index') }}" class="{{ request()->routeIs('purchases.*') ? 'active' : '' }}"><i class="fas fa-shopping-bag"></i> Purchase</a></li>
+        
+        <!-- Sale Menu -->
+        <li>
+            <a href="#saleSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('invoices.*') || request()->routeIs('sale_returns.*') || request()->routeIs('quotations.*') ? 'active' : '' }}">
+                <i class="fas fa-file-invoice"></i> Sale
+            </a>
+            <ul class="collapse submenu {{ request()->routeIs('invoices.*') || request()->routeIs('sale_returns.*') || request()->routeIs('quotations.*') ? 'show' : '' }}" id="saleSubmenu">
+                
+                <!-- Invoice Submenu -->
+                <li>
+                    <a href="#invoiceSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('invoices.*') ? 'text-white' : '' }}">
+                        <i class="fas fa-file-alt"></i> Invoice
+                    </a>
+                    <ul class="collapse submenu {{ request()->routeIs('invoices.*') ? 'show' : '' }}" id="invoiceSubmenu">
+                        <li><a href="{{ route('invoices.create') }}" class="{{ request()->routeIs('invoices.create') ? 'active' : '' }}">New Invoice</a></li>
+                        <li><a href="{{ route('invoices.index') }}" class="{{ request()->routeIs('invoices.index') ? 'active' : '' }}">Search & Manage</a></li>
+                    </ul>
+                </li>
+
+                <!-- Sale Return Submenu -->
+                <li>
+                    <a href="#saleReturnSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('sale_returns.*') ? 'text-white' : '' }}">
+                        <i class="fas fa-undo"></i> Sale Return
+                    </a>
+                    <ul class="collapse submenu {{ request()->routeIs('sale_returns.*') ? 'show' : '' }}" id="saleReturnSubmenu">
+                        <li><a href="{{ route('sale_returns.create') }}" class="{{ request()->routeIs('sale_returns.create') ? 'active' : '' }}">New Sale Return</a></li>
+                        <li><a href="{{ route('sale_returns.index') }}" class="{{ request()->routeIs('sale_returns.index') ? 'active' : '' }}">Search & Manage</a></li>
+                    </ul>
+                </li>
+
+                <!-- Quotation Submenu -->
+                <li>
+                    <a href="#quotationSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('quotations.*') ? 'text-white' : '' }}">
+                        <i class="fas fa-file-contract"></i> Quotation
+                    </a>
+                    <ul class="collapse submenu {{ request()->routeIs('quotations.*') ? 'show' : '' }}" id="quotationSubmenu">
+                        <li><a href="{{ route('quotations.create') }}" class="{{ request()->routeIs('quotations.create') ? 'active' : '' }}">New Quotation</a></li>
+                        <li><a href="{{ route('quotations.index') }}" class="{{ request()->routeIs('quotations.index') ? 'active' : '' }}">Search & Manage</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+
+        <!-- Purchase Menu -->
+        <li>
+            <a href="#purchaseSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('purchases.*') || request()->routeIs('purchase_returns.*') || request()->routeIs('purchase_orders.*') || request()->routeIs('debit_notes.*') || request()->routeIs('credit_notes.*') || request()->routeIs('suppliers.*') ? 'active' : '' }}">
+                <i class="fas fa-shopping-bag"></i> Purchase
+            </a>
+            <ul class="collapse submenu {{ request()->routeIs('purchases.*') || request()->routeIs('purchase_returns.*') || request()->routeIs('purchase_orders.*') || request()->routeIs('debit_notes.*') || request()->routeIs('credit_notes.*') || request()->routeIs('suppliers.*') ? 'show' : '' }}" id="purchaseSubmenu">
+                
+                <!-- Purchase Bill Submenu -->
+                <li>
+                    <a href="#purchaseBillSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('purchases.*') ? 'text-white' : '' }}">
+                        <i class="fas fa-file-invoice-dollar"></i> Purchase Bill
+                    </a>
+                    <ul class="collapse submenu {{ request()->routeIs('purchases.*') ? 'show' : '' }}" id="purchaseBillSubmenu">
+                        <li><a href="{{ route('purchases.create') }}" class="{{ request()->routeIs('purchases.create') ? 'active' : '' }}">Add Purchase Bill</a></li>
+                        <li><a href="{{ route('purchases.index') }}" class="{{ request()->routeIs('purchases.index') ? 'active' : '' }}">Search & Manage</a></li>
+                    </ul>
+                </li>
+
+                <!-- Purchase Return Submenu -->
+                <li>
+                    <a href="#purchaseReturnSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('purchase_returns.*') ? 'text-white' : '' }}">
+                        <i class="fas fa-undo"></i> Purchase Return
+                    </a>
+                    <ul class="collapse submenu {{ request()->routeIs('purchase_returns.*') ? 'show' : '' }}" id="purchaseReturnSubmenu">
+                        <li><a href="{{ route('purchase_returns.create') }}" class="{{ request()->routeIs('purchase_returns.create') ? 'active' : '' }}">Add Purchase Return</a></li>
+                        <li><a href="{{ route('purchase_returns.index') }}" class="{{ request()->routeIs('purchase_returns.index') ? 'active' : '' }}">Search & Manage</a></li>
+                    </ul>
+                </li>
+
+                <!-- Purchase Order Submenu -->
+                <li>
+                    <a href="#purchaseOrderSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('purchase_orders.*') ? 'text-white' : '' }}">
+                        <i class="fas fa-clipboard-list"></i> Purchase Order
+                    </a>
+                    <ul class="collapse submenu {{ request()->routeIs('purchase_orders.*') ? 'show' : '' }}" id="purchaseOrderSubmenu">
+                        <li><a href="{{ route('purchase_orders.create') }}" class="{{ request()->routeIs('purchase_orders.create') ? 'active' : '' }}">New Order</a></li>
+                        <li><a href="{{ route('purchase_orders.index') }}" class="{{ request()->routeIs('purchase_orders.index') ? 'active' : '' }}">Search & Manage</a></li>
+                    </ul>
+                </li>
+
+                <!-- Debit Note Submenu -->
+                <li>
+                    <a href="#debitNoteSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('debit_notes.*') ? 'text-white' : '' }}">
+                        <i class="fas fa-file-invoice-dollar"></i> Debit Note
+                    </a>
+                    <ul class="collapse submenu {{ request()->routeIs('debit_notes.*') ? 'show' : '' }}" id="debitNoteSubmenu">
+                        <li><a href="{{ route('debit_notes.create') }}" class="{{ request()->routeIs('debit_notes.create') ? 'active' : '' }}">New Debit Note</a></li>
+                        <li><a href="{{ route('debit_notes.index') }}" class="{{ request()->routeIs('debit_notes.index') ? 'active' : '' }}">Search & Manage</a></li>
+                    </ul>
+                </li>
+
+                <!-- Credit Note Submenu -->
+                <li>
+                    <a href="#creditNoteSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('credit_notes.*') ? 'text-white' : '' }}">
+                        <i class="fas fa-file-invoice-dollar"></i> Credit Note
+                    </a>
+                    <ul class="collapse submenu {{ request()->routeIs('credit_notes.*') ? 'show' : '' }}" id="creditNoteSubmenu">
+                         <li><a href="{{ route('credit_notes.create') }}" class="{{ request()->routeIs('credit_notes.create') ? 'active' : '' }}">New Credit Note</a></li>
+                        <li><a href="{{ route('credit_notes.index') }}" class="{{ request()->routeIs('credit_notes.index') ? 'active' : '' }}">Search & Manage</a></li>
+                    </ul>
+                </li>
+
+                <!-- Supplier Submenu -->
+                <li>
+                    <a href="#supplierSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('suppliers.*') ? 'text-white' : '' }}">
+                        <i class="fas fa-users"></i> Supplier
+                    </a>
+                    <ul class="collapse submenu {{ request()->routeIs('suppliers.*') ? 'show' : '' }}" id="supplierSubmenu">
+                         <li><a href="{{ route('suppliers.create') }}" class="{{ request()->routeIs('suppliers.create') ? 'active' : '' }}">Add Supplier</a></li>
+                        <li><a href="{{ route('suppliers.index') }}" class="{{ request()->routeIs('suppliers.index') ? 'active' : '' }}">Search & Manage</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+
         <li><a href="{{ route('inventory.index') }}" class="{{ request()->routeIs('inventory.*') ? 'active' : '' }}"><i class="fas fa-boxes"></i> Inventory</a></li>
         <li><a href="{{ route('accounts.index') }}" class="{{ request()->routeIs('accounts.*') ? 'active' : '' }}"><i class="fas fa-calculator"></i> Accounts</a></li>
         <li><a href="{{ route('expenses.index') }}" class="{{ request()->routeIs('expenses.*') ? 'active' : '' }}"><i class="fas fa-wallet"></i> Expense</a></li>
@@ -239,10 +387,10 @@
     <!-- Top Bar -->
     <div class="top-bar animate__animated animate__fadeInDown">
         <div class="d-flex align-items-center" style="width: 50%;">
-            <div class="input-group">
-                <input type="text" class="form-control" placeholder="Invoice No or Customer Name or Mobile No">
-                <button class="btn btn-success" type="button"><i class="fas fa-search"></i> Search in Invoice</button>
-            </div>
+            <form action="{{ route('invoices.index') }}" method="GET" class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Invoice No or Customer Name or Mobile No" value="{{ request('search') }}">
+                <button class="btn btn-success" type="submit"><i class="fas fa-search"></i> Search in Invoice</button>
+            </form>
         </div>
         <div class="d-flex align-items-center gap-3">
             <div class="text-end d-none d-md-block">
@@ -283,12 +431,36 @@
         "positionClass": "toast-top-right",
     };
 
-    $(document).ready(function() {
-        // Initialize all Select2 elements
-        $('.select2').select2({
-            theme: 'bootstrap-5'
+    // Re-initialize plugins on Turbo Load (Navigation) AND initial load
+    document.addEventListener('turbo:load', function() {
+        // Initialize all Select2 elements if they aren't already
+        // We destroy and recreate to ensure clean state after navigation cache restoration
+        $('.select2').each(function() {
+            if ($(this).hasClass("select2-hidden-accessible")) {
+                $(this).select2('destroy');
+            }
+            $(this).select2({
+                theme: 'bootstrap-5'
+            });
         });
+
+        // Sidebar Accordion Behavior (Re-bind)
+        // Unbind first to prevent duplicate listeners
+        $('.sidebar-menu .collapse').off('show.bs.collapse').on('show.bs.collapse', function () {
+            $(this).parent().siblings().find('.collapse.show').collapse('hide');
+        });
+
+        // Fade in main content if desired
+        $('.main-content').addClass('animate__animated animate__fadeIn');
     });
+    
+    // Legacy support for scripts doing $(document).ready()
+    // Since Turbo fires 'turbo:load' instead of standard events on nav, 
+    // we bridge it for simple cases, but specific views should ideally listen to turbo:load.
+</script>
+<script type="module">
+    import hotwiredTurbo from 'https://cdn.skypack.dev/@hotwired/turbo';
+</script>
 </script>
 
 @stack('scripts')
