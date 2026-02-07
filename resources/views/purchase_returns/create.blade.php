@@ -50,7 +50,7 @@
 
                 <div class="col-md-2">
                     <label class="form-label">Return #</label>
-                    <input type="text" name="return_number" class="form-control" value="{{ isset($purchaseReturn) ? $purchaseReturn->return_number : $returnNumber }}" readonly>
+                    <input type="text" name="return_number" class="form-control" value="{{ isset($purchaseReturn) ? $purchaseReturn->return_number : $returnNumber }}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Return Date <span class="text-danger">*</span></label>

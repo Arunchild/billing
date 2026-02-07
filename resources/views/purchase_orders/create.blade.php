@@ -39,7 +39,7 @@
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">PO #</label>
-                    <input type="text" name="po_number" class="form-control" value="{{ isset($purchaseOrder) ? $purchaseOrder->po_number : $poNumber }}" readonly>
+                    <input type="text" name="po_number" class="form-control" value="{{ isset($purchaseOrder) ? $purchaseOrder->po_number : $poNumber }}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Order Date <span class="text-danger">*</span></label>

@@ -23,7 +23,7 @@
             <div class="row mb-3">
                  <div class="col-md-6">
                     <label class="form-label">Note #</label>
-                    <input type="text" name="note_number" class="form-control" value="{{ isset($creditNote) ? $creditNote->note_number : $noteNumber }}" readonly>
+                    <input type="text" name="note_number" class="form-control" value="{{ isset($creditNote) ? $creditNote->note_number : $noteNumber }}">
                 </div>
                 <div class="col-md-6">
                      <label class="form-label">Date <span class="text-danger">*</span></label>

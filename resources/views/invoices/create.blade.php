@@ -39,7 +39,7 @@
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Invoice #</label>
-                    <input type="text" name="invoice_number" class="form-control" value="{{ isset($invoice) ? $invoice->invoice_number : $invoiceNumber }}" readonly>
+                    <input type="text" name="invoice_number" class="form-control" value="{{ isset($invoice) ? $invoice->invoice_number : $invoiceNumber }}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Invoice Date <span class="text-danger">*</span></label>

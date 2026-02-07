@@ -69,7 +69,7 @@ class QuotationController extends Controller
     {
         $customers = Customer::all();
         $products = Product::all();
-        $nextId = Quotation::max('id') + 1;
+        $nextId = Quotation::withTrashed()->max('id') + 1;
         $quotationNumber = 'QT-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
         
         return view('quotations.create', compact('customers', 'products', 'quotationNumber'));
@@ -137,7 +137,7 @@ class QuotationController extends Controller
                     'success' => true,
                     'message' => 'Quotation created successfully!',
                     'quotation_id' => $quotation->id,
-                    'next_quotation_number' => 'QT-' . str_pad(Quotation::max('id') + 1, 5, '0', STR_PAD_LEFT)
+                    'next_quotation_number' => 'QT-' . str_pad(Quotation::withTrashed()->max('id') + 1, 5, '0', STR_PAD_LEFT)
                 ]);
             }
 

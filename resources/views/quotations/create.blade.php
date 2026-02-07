@@ -36,7 +36,7 @@
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Quotation #</label>
-                    <input type="text" name="quotation_number" class="form-control" value="{{ $quotationNumber }}" readonly>
+                    <input type="text" name="quotation_number" class="form-control" value="{{ $quotationNumber }}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Quotation Date <span class="text-danger">*</span></label>
@@ -150,7 +150,7 @@
                         <input type="hidden" name="total" id="grandTotalInput">
                     </div>
                 </div>
-                <div class="card-footer bg-light text-end">
+    <div class="card-footer bg-light text-end">
                     <button type="button" class="btn btn-info px-4 me-2 text-white" id="saveAndPrintBtn"><i class="fas fa-print"></i> Save & Print</button>
                     <button type="submit" class="btn btn-success px-4" id="saveBtn"><i class="fas fa-check"></i> Save Quotation</button>
                 </div>
@@ -159,6 +159,19 @@
     </div>
 </form>
 
+@if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+@endsection
+
+@push('scripts')
 <script>
     function updateProduct(select) {
         const row = select.closest('tr');
@@ -274,19 +287,22 @@
         }
     }
 
-    $(document).ready(function() {
+    // Function to initialize handlers, safe to call multiple times or on Turbo load
+    function initQuotationForm() {
+        console.log('Initializing quotation form script');
         let isSaveAndPrint = false;
 
-        $('#saveAndPrintBtn').click(function() {
+        // Unbind previous handlers to avoid duplicates
+        $('#saveAndPrintBtn').off('click').on('click', function() {
             isSaveAndPrint = true;
             $('#quotationForm').submit();
         });
 
-        $('#saveBtn').click(function() {
+        $('#saveBtn').off('click').on('click', function() {
             isSaveAndPrint = false;
         });
 
-        $('#quotationForm').on('submit', function(e) {
+        $('#quotationForm').off('submit').on('submit', function(e) {
             e.preventDefault();
             
             let form = $(this);
@@ -338,6 +354,15 @@
                 }
             });
         });
+    }
+
+    $(document).ready(function() {
+        initQuotationForm();
+    });
+
+    // Support Turbo Drive if enabled
+    document.addEventListener("turbo:load", function() {
+        initQuotationForm();
     });
 </script>
-@endsection
+@endpush
