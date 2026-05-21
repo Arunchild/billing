@@ -96,7 +96,8 @@
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                     <li><a class="dropdown-item" href="{{ route('invoices.edit', $invoice->id) }}"><i class="fas fa-edit text-primary me-2"></i> View / Modify</a></li>
-                                    <li><a class="dropdown-item" href="{{ route('invoices.print', $invoice->id) }}" target="_blank"><i class="fas fa-print text-secondary me-2"></i> Print / Export</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('invoices.print', $invoice->id) }}" target="_blank"><i class="fas fa-print text-secondary me-2"></i> Print / Export (Bill 1)</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('invoices.print2', $invoice->id) }}" target="_blank"><i class="fas fa-file-invoice text-success me-2"></i> Print / Export (Bill 2)</a></li>
                                     <li><a class="dropdown-item" href="{{ route('invoices.clone', $invoice->id) }}"><i class="fas fa-copy text-info me-2"></i> Create Invoice Clone</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>

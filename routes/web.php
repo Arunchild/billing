@@ -11,6 +11,7 @@ Route::get('/', function () {
 Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 Route::resource('customers', \App\Http\Controllers\CustomerController::class);
 Route::get('invoices/{id}/print', [InvoiceController::class, 'print'])->name('invoices.print');
+Route::get('invoices/{id}/print2', [InvoiceController::class, 'print2'])->name('invoices.print2');
 Route::get('invoices/{id}/clone', [InvoiceController::class, 'clone'])->name('invoices.clone');
 Route::get('invoices/{id}/items', [InvoiceController::class, 'getItems'])->name('invoices.items');
 Route::post('invoices/bulk-destroy', [InvoiceController::class, 'bulkDestroy'])->name('invoices.bulk_destroy');

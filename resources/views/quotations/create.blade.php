@@ -3,8 +3,8 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4 animate__animated animate__fadeIn">
     <div>
-        <h2 class="mb-1 fw-bold text-primary">New Quotation</h2>
-        <p class="text-muted mb-0">Create a new quotation</p>
+        <h2 class="mb-1 fw-bold text-primary">{{ isset($quotation) ? 'Edit Quotation' : 'New Quotation' }}</h2>
+        <p class="text-muted mb-0">{{ isset($quotation) ? 'Modify quotation details' : 'Create a new quotation' }}</p>
     </div>
     <div>
         <a href="{{ route('quotations.index') }}" class="btn btn-outline-secondary">
@@ -13,8 +13,11 @@
     </div>
 </div>
 
-<form action="{{ route('quotations.store') }}" method="POST" id="quotationForm" class="animate__animated animate__fadeInUp">
+<form action="{{ isset($quotation) ? route('quotations.update', $quotation->id) : route('quotations.store') }}" method="POST" id="quotationForm" class="animate__animated animate__fadeInUp">
     @csrf
+    @if(isset($quotation))
+        @method('PUT')
+    @endif
     
     <div class="card mb-4">
         <div class="card-header">
@@ -28,7 +31,7 @@
                         <select name="customer_id" class="form-select select2" required>
                             <option value="">Select Customer</option>
                             @foreach($customers as $customer)
-                                <option value="{{ $customer->id }}" {{ request('customer_id') == $customer->id ? 'selected' : '' }}>{{ $customer->name }} ({{ $customer->phone ?? 'No Phone' }})</option>
+                                <option value="{{ $customer->id }}" {{ (isset($quotation) && $quotation->customer_id == $customer->id) || request('customer_id') == $customer->id ? 'selected' : '' }}>{{ $customer->name }} ({{ $customer->phone ?? 'No Phone' }})</option>
                             @endforeach
                         </select>
                         <button class="btn btn-outline-primary" type="button"><i class="fas fa-plus"></i></button>
@@ -40,11 +43,11 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Quotation Date <span class="text-danger">*</span></label>
-                    <input type="date" name="quotation_date" class="form-control" value="{{ date('Y-m-d') }}" required>
+                    <input type="date" name="quotation_date" class="form-control" value="{{ isset($quotation) ? \Carbon\Carbon::parse($quotation->quotation_date)->format('Y-m-d') : date('Y-m-d') }}" required>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Valid Until</label>
-                    <input type="date" name="valid_until" class="form-control">
+                    <input type="date" name="valid_until" class="form-control" value="{{ isset($quotation) && $quotation->valid_until ? \Carbon\Carbon::parse($quotation->valid_until)->format('Y-m-d') : '' }}">
                 </div>
             </div>
         </div>
@@ -69,37 +72,69 @@
                             <th style="width: 5%;"></th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr class="item-row">
-                            <td>
-                                <select name="items[0][product_id]" class="form-select product-select select2" onchange="updateProduct(this)" required>
-                                    <option value="">Select Product (Name / SKU)</option>
-                                    @foreach($products as $product)
-                                        <option value="{{ $product->id }}" data-price="{{ $product->price }}">{{ $product->name }} {{ $product->item_code ? '('.$product->item_code.')' : '' }}</option>
-                                    @endforeach
-                                </select>
-                                <input type="hidden" name="items[0][product_name]" class="product-name">
-                            </td>
-                            <td>
-                                <input type="number" name="items[0][quantity]" class="form-control qty-input text-center" value="1" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
-                            </td>
-                            <td>
-                                <input type="number" name="items[0][price]" class="form-control price-input text-end" step="0.01" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
-                            </td>
-                            <td>
-                                <input type="number" name="items[0][tax_rate]" class="form-control tax-rate-input text-center" step="0.01" value="0" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
-                            </td>
-                            <td>
-                                <input type="number" name="items[0][tax_amount]" class="form-control tax-amount-input text-end bg-light" step="0.01" readonly>
-                            </td>
-                            <td>
-                                <input type="number" name="items[0][total]" class="form-control total-input text-end fw-bold bg-light" step="0.01" readonly>
-                            </td>
-                            <td class="text-center align-middle">
-                                <button type="button" class="btn btn-outline-danger btn-sm rounded-circle" onclick="removeRow(this)"><i class="fas fa-times"></i></button>
-                            </td>
-                        </tr>
-                    </tbody>
+                        @if(isset($quotation) && $quotation->items)
+                            @foreach($quotation->items as $index => $item)
+                            <tr class="item-row">
+                                <td>
+                                    <select name="items[{{ $index }}][product_id]" class="form-select product-select select2" onchange="updateProduct(this)" required>
+                                        <option value="">Select Product (Name / SKU)</option>
+                                        @foreach($products as $product)
+                                            <option value="{{ $product->id }}" data-price="{{ $product->price }}" {{ $item->product_id == $product->id ? 'selected' : '' }}>{{ $product->name }} {{ $product->item_code ? '('.$product->item_code.')' : '' }}</option>
+                                        @endforeach
+                                    </select>
+                                    <input type="hidden" name="items[{{ $index }}][product_name]" class="product-name" value="{{ $item->product_name }}">
+                                </td>
+                                <td>
+                                    <input type="number" name="items[{{ $index }}][quantity]" class="form-control qty-input text-center" value="{{ $item->quantity }}" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
+                                </td>
+                                <td>
+                                    <input type="number" name="items[{{ $index }}][price]" class="form-control price-input text-end" step="0.01" value="{{ $item->price }}" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
+                                </td>
+                                <td>
+                                    <input type="number" name="items[{{ $index }}][tax_rate]" class="form-control tax-rate-input text-center" step="0.01" value="{{ $item->tax_rate }}" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
+                                </td>
+                                <td>
+                                    <input type="number" name="items[{{ $index }}][tax_amount]" class="form-control tax-amount-input text-end bg-light" step="0.01" value="{{ $item->tax_amount }}" readonly>
+                                </td>
+                                <td>
+                                    <input type="number" name="items[{{ $index }}][total]" class="form-control total-input text-end fw-bold bg-light" step="0.01" value="{{ $item->total }}" readonly>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-circle" onclick="removeRow(this)"><i class="fas fa-times"></i></button>
+                                </td>
+                            </tr>
+                            @endforeach
+                        @else
+                            <tr class="item-row">
+                                <td>
+                                    <select name="items[0][product_id]" class="form-select product-select select2" onchange="updateProduct(this)" required>
+                                        <option value="">Select Product (Name / SKU)</option>
+                                        @foreach($products as $product)
+                                            <option value="{{ $product->id }}" data-price="{{ $product->price }}">{{ $product->name }} {{ $product->item_code ? '('.$product->item_code.')' : '' }}</option>
+                                        @endforeach
+                                    </select>
+                                    <input type="hidden" name="items[0][product_name]" class="product-name">
+                                </td>
+                                <td>
+                                    <input type="number" name="items[0][quantity]" class="form-control qty-input text-center" value="1" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
+                                </td>
+                                <td>
+                                    <input type="number" name="items[0][price]" class="form-control price-input text-end" step="0.01" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
+                                </td>
+                                <td>
+                                    <input type="number" name="items[0][tax_rate]" class="form-control tax-rate-input text-center" step="0.01" value="0" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
+                                </td>
+                                <td>
+                                    <input type="number" name="items[0][tax_amount]" class="form-control tax-amount-input text-end bg-light" step="0.01" readonly>
+                                </td>
+                                <td>
+                                    <input type="number" name="items[0][total]" class="form-control total-input text-end fw-bold bg-light" step="0.01" readonly>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-circle" onclick="removeRow(this)"><i class="fas fa-times"></i></button>
+                                </td>
+                            </tr>
+                        @endif
                 </table>
             </div>
             
@@ -141,7 +176,7 @@
                     <div class="row mb-3 align-items-center">
                         <div class="col-6 text-end text-muted">Discount:</div>
                         <div class="col-6">
-                            <input type="number" name="discount" id="discountInput" class="form-control form-control-sm text-end ms-auto" style="width: 120px;" value="0" step="0.01" onchange="calculateTotals()" onkeyup="calculateTotals()">
+                            <input type="number" name="discount" id="discountInput" class="form-control form-control-sm text-end ms-auto" style="width: 120px;" value="{{ $quotation->discount ?? 0 }}" step="0.01" onchange="calculateTotals()" onkeyup="calculateTotals()">
                         </div>
                     </div>
                     <div class="border-top pt-3 row">
@@ -152,7 +187,7 @@
                 </div>
     <div class="card-footer bg-light text-end">
                     <button type="button" class="btn btn-info px-4 me-2 text-white" id="saveAndPrintBtn"><i class="fas fa-print"></i> Save & Print</button>
-                    <button type="submit" class="btn btn-success px-4" id="saveBtn"><i class="fas fa-check"></i> Save Quotation</button>
+                    <button type="submit" class="btn btn-success px-4" id="saveBtn"><i class="fas fa-check"></i> {{ isset($quotation) ? 'Update Quotation' : 'Save Quotation' }}</button>
                 </div>
             </div>
         </div>
@@ -358,6 +393,13 @@
 
     $(document).ready(function() {
         initQuotationForm();
+
+        // Initial calculation if editing
+        @if(isset($quotation))
+            calculateTotals();
+            // Set JavaScript row count past existing rows
+            rowCount = {{ count($quotation->items ?? []) }};
+        @endif
     });
 
     // Support Turbo Drive if enabled

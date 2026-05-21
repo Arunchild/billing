@@ -113,6 +113,7 @@ class InvoiceController extends Controller
                 $invoice->items()->create([
                     'product_id' => $item['product_id'],
                     'product_name' => $item['product_name'],
+                    'item_description' => $item['item_description'] ?? null,
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                     'tax_rate' => $item['tax_rate'] ?? 0,
@@ -180,6 +181,7 @@ class InvoiceController extends Controller
                 $invoice->items()->create([
                     'product_id' => $item['product_id'],
                     'product_name' => $item['product_name'],
+                    'item_description' => $item['item_description'] ?? null,
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                     'tax_rate' => $item['tax_rate'] ?? 0,
@@ -226,6 +228,12 @@ class InvoiceController extends Controller
     {
         $invoice = Invoice::with(['customer', 'items'])->findOrFail($id);
         return view('invoices.print', compact('invoice'));
+    }
+
+    public function print2($id)
+    {
+        $invoice = Invoice::with(['customer', 'items'])->findOrFail($id);
+        return view('invoices.print2', compact('invoice'));
     }
 
     public function clone($id)

@@ -84,6 +84,7 @@
                                         @endforeach
                                     </select>
                                     <input type="hidden" name="items[{{$index}}][product_name]" class="product-name" value="{{ $item->product_name }}">
+                                    <input type="text" name="items[{{$index}}][item_description]" class="form-control mt-1 item-description form-control-sm" placeholder="Custom Description (optional)" value="{{ $item->item_description }}">
                                 </td>
                                 <td>
                                     <input type="number" name="items[{{$index}}][quantity]" class="form-control qty-input text-center" value="{{ $item->quantity }}" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
@@ -115,6 +116,7 @@
                                         @endforeach
                                     </select>
                                     <input type="hidden" name="items[0][product_name]" class="product-name">
+                                    <input type="text" name="items[0][item_description]" class="form-control mt-1 item-description form-control-sm" placeholder="Custom Description (optional)">
                                 </td>
                                 <td>
                                     <input type="number" name="items[0][quantity]" class="form-control qty-input text-center" value="1" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
@@ -274,6 +276,7 @@
                         <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#addProductModal"><i class="fas fa-plus"></i></button>
                     </div>
                     <input type="hidden" name="items[${rowCount}][product_name]" class="product-name">
+                    <input type="text" name="items[${rowCount}][item_description]" class="form-control mt-1 item-description form-control-sm" placeholder="Custom Description (optional)">
                 </td>
                 <td><input type="number" name="items[${rowCount}][quantity]" class="form-control qty-input text-center" value="1" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
                 <td><input type="number" name="items[${rowCount}][price]" class="form-control price-input text-end" step="0.01" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>

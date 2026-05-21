@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4 animate__animated animate__fadeIn">
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4 animate__animated animate__fadeIn">
     <div>
         <h2 class="mb-1 fw-bold text-primary">Add New Product</h2>
         <p class="text-muted mb-0">Create a new product in inventory</p>
@@ -15,7 +16,7 @@
 
 <form action="{{ route('products.store') }}" method="POST" id="ajaxForm">
     @csrf
-    <div class="row animate__animated animate__fadeInUp">
+    <div class="row animate__animated animate__fadeInUp mx-0">
         <!-- Product Details Column -->
         <div class="col-md-6">
             <div class="card mb-3">
@@ -27,10 +28,14 @@
                         <label class="form-label">Group</label>
                         <select name="group" class="form-select">
                             <option value="">Select Group</option>
-                            <option value="Electronics">Electronics</option>
-                            <option value="Clothing">Clothing</option>
-                            <option value="Groceries">Groceries</option>
-                            <option value="Hardware">Hardware</option>
+                            <option value="Medicines">Medicines</option>
+                            <option value="Medical Devices">Medical Devices</option>
+                            <option value="Surgical">Surgical</option>
+                            <option value="OTC / General">OTC / General</option>
+                            <option value="Nutraceuticals">Nutraceuticals</option>
+                            <option value="Ayurvedic">Ayurvedic</option>
+                            <option value="Cosmetics">Cosmetics</option>
+                            <option value="Diagnostics">Diagnostics</option>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -38,8 +43,14 @@
                         <select name="brand" class="form-select" required>
                             <option value="">Select Brand</option>
                             <option value="Generic">Generic</option>
-                            <option value="Brand-A">Brand-A</option>
-                            <option value="Brand-B">Brand-B</option>
+                            <option value="Sun Pharma">Sun Pharma</option>
+                            <option value="Cipla">Cipla</option>
+                            <option value="Dr. Reddy's">Dr. Reddy's</option>
+                            <option value="Mankind">Mankind</option>
+                            <option value="Abbott">Abbott</option>
+                            <option value="Pfizer">Pfizer</option>
+                            <option value="Himalaya">Himalaya</option>
+                            <option value="Dabur">Dabur</option>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -272,8 +283,10 @@
         </button>
     </div>
 </form>
+</div>
+@endsection
 
-@section('scripts')
+@push('scripts')
 <script>
 document.querySelector('textarea[name="product_description"]').addEventListener('input', function() {
     document.getElementById('charCount').textContent = this.value.length;
@@ -321,4 +334,4 @@ $(document).ready(function() {
     });
 });
 </script>
-@endsection
+@endpush
