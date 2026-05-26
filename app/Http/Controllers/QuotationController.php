@@ -93,6 +93,7 @@ class QuotationController extends Controller
                 'items.*.product_id' => 'required|exists:products,id',
                 'items.*.quantity' => 'required|numeric|min:1',
                 'items.*.price' => 'required|numeric|min:0',
+                'items.*.item_description' => 'nullable|string|max:250',
             ]);
 
             $quotation = null;
@@ -123,6 +124,7 @@ class QuotationController extends Controller
                     $quotation->items()->create([
                         'product_id' => $item['product_id'],
                         'product_name' => $productName,
+                        'item_description' => $item['item_description'] ?? null,
                         'quantity' => $item['quantity'],
                         'price' => $item['price'],
                         'tax_rate' => $item['tax_rate'] ?? 0,
@@ -201,6 +203,7 @@ class QuotationController extends Controller
                 $quotation->items()->create([
                     'product_id' => $item['product_id'],
                     'product_name' => $productName,
+                    'item_description' => $item['item_description'] ?? null,
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                     'tax_rate' => $item['tax_rate'] ?? 0,

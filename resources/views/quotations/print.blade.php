@@ -81,7 +81,12 @@
                 </tr>
                 @foreach($quotation->items as $item)
                 <tr>
-                    <td>{{ $item->product_name }}</td>
+                    <td>
+                        {{ $item->product_name }}
+                        @if($item->item_description)
+                            <br><small style="color: #555; font-size: 11px;">{{ $item->item_description }}</small>
+                        @endif
+                    </td>
                     <td class="text-center">{{ $item->quantity }}</td>
                     <td class="text-right">{{ number_format($item->total, 2) }}</td>
                 </tr>

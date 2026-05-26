@@ -80,11 +80,14 @@
                                     <select name="items[{{$index}}][product_id]" class="form-select product-select select2" onchange="updateProduct(this)" required>
                                         <option value="">Select Product (Name / SKU)</option>
                                         @foreach($products as $product)
-                                            <option value="{{ $product->id }}" data-price="{{ $product->price }}" {{ $item->product_id == $product->id ? 'selected' : '' }}>{{ $product->name }} {{ $product->item_code ? '('.$product->item_code.')' : '' }}</option>
+                                            <option value="{{ $product->id }}" data-price="{{ $product->price }}" data-description="{{ $product->product_description ?? $product->description ?? '' }}" {{ $item->product_id == $product->id ? 'selected' : '' }}>{{ $product->name }} {{ $product->item_code ? '('.$product->item_code.')' : '' }}</option>
                                         @endforeach
                                     </select>
                                     <input type="hidden" name="items[{{$index}}][product_name]" class="product-name" value="{{ $item->product_name }}">
-                                    <input type="text" name="items[{{$index}}][item_description]" class="form-control mt-1 item-description form-control-sm" placeholder="Custom Description (optional)" value="{{ $item->item_description }}">
+                                    <textarea name="items[{{$index}}][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" maxlength="250" placeholder="Custom Description (optional)">{{ $item->item_description }}</textarea>
+                                    <div class="char-count-wrapper text-end small text-muted">
+                                        <span class="char-count">{{ strlen($item->item_description ?? '') }}</span> / 250
+                                    </div>
                                 </td>
                                 <td>
                                     <input type="number" name="items[{{$index}}][quantity]" class="form-control qty-input text-center" value="{{ $item->quantity }}" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
@@ -112,11 +115,14 @@
                                     <select name="items[0][product_id]" class="form-select product-select select2" onchange="updateProduct(this)" required>
                                         <option value="">Select Product (Name / SKU)</option>
                                         @foreach($products as $product)
-                                            <option value="{{ $product->id }}" data-price="{{ $product->price }}">{{ $product->name }} {{ $product->item_code ? '('.$product->item_code.')' : '' }}</option>
+                                            <option value="{{ $product->id }}" data-price="{{ $product->price }}" data-description="{{ $product->product_description ?? $product->description ?? '' }}">{{ $product->name }} {{ $product->item_code ? '('.$product->item_code.')' : '' }}</option>
                                         @endforeach
                                     </select>
                                     <input type="hidden" name="items[0][product_name]" class="product-name">
-                                    <input type="text" name="items[0][item_description]" class="form-control mt-1 item-description form-control-sm" placeholder="Custom Description (optional)">
+                                    <textarea name="items[0][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" maxlength="250" placeholder="Custom Description (optional)"></textarea>
+                                    <div class="char-count-wrapper text-end small text-muted">
+                                        <span class="char-count">0</span> / 250
+                                    </div>
                                 </td>
                                 <td>
                                     <input type="number" name="items[0][quantity]" class="form-control qty-input text-center" value="1" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
@@ -206,14 +212,29 @@
 @push('scripts')
 <script>
     // Invoice Logic 
+    function updateCharCount(textarea) {
+        const countSpan = $(textarea).siblings('.char-count-wrapper').find('.char-count');
+        if (countSpan.length) {
+            countSpan.text(textarea.value.length);
+        }
+    }
+
     function updateProduct(select) {
         const row = select.closest('tr');
         const selectedOption = select.options[select.selectedIndex];
         const price = selectedOption.getAttribute('data-price');
         const name = selectedOption.text;
+        const description = selectedOption.getAttribute('data-description') || '';
         
         row.querySelector('.price-input').value = price || 0;
         row.querySelector('.product-name').value = name;
+        
+        const descTextarea = row.querySelector('.item-description');
+        if (descTextarea) {
+            descTextarea.value = description.substring(0, 250);
+            updateCharCount(descTextarea);
+        }
+        
         calculateRow(select);
     }
 
@@ -270,13 +291,16 @@
                         <select name="items[${rowCount}][product_id]" class="form-select product-select select2-new-${rowCount}" onchange="updateProduct(this)" required>
                             <option value="">Select Product</option>
                             @foreach($products as $product)
-                                <option value="{{ $product->id }}" data-price="{{ $product->sale_price ?? $product->price ?? 0 }}">{{ $product->name }}</option>
+                                <option value="{{ $product->id }}" data-price="{{ $product->sale_price ?? $product->price ?? 0 }}" data-description="{{ $product->product_description ?? $product->description ?? '' }}">{{ $product->name }}</option>
                             @endforeach
                         </select>
                         <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#addProductModal"><i class="fas fa-plus"></i></button>
                     </div>
                     <input type="hidden" name="items[${rowCount}][product_name]" class="product-name">
-                    <input type="text" name="items[${rowCount}][item_description]" class="form-control mt-1 item-description form-control-sm" placeholder="Custom Description (optional)">
+                    <textarea name="items[${rowCount}][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" maxlength="250" placeholder="Custom Description (optional)"></textarea>
+                    <div class="char-count-wrapper text-end small text-muted">
+                        <span class="char-count">0</span> / 250
+                    </div>
                 </td>
                 <td><input type="number" name="items[${rowCount}][quantity]" class="form-control qty-input text-center" value="1" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
                 <td><input type="number" name="items[${rowCount}][price]" class="form-control price-input text-end" step="0.01" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
@@ -304,6 +328,11 @@
 
     $(document).ready(function() {
         calculateTotals();
+        
+        // Character count event delegation
+        $(document).on('input', '.item-description', function() {
+            updateCharCount(this);
+        });
         
         // Handle new product (Sale Side) - using specific sale route logic or parameter if needed, but products.store is unified.
         // We just need to make sure we set correct price.
@@ -336,6 +365,7 @@
                         $('.product-select').each(function() {
                             const newOption = new Option(response.product.name, response.product.id, false, false);
                             $(newOption).attr('data-price', response.product.sale_price); // Sale Price for Invoice
+                            $(newOption).attr('data-description', response.product.product_description || response.product.description || '');
                             $(this).append(newOption);
                         });
                         

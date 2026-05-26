@@ -79,10 +79,14 @@
                                     <select name="items[{{ $index }}][product_id]" class="form-select product-select select2" onchange="updateProduct(this)" required>
                                         <option value="">Select Product (Name / SKU)</option>
                                         @foreach($products as $product)
-                                            <option value="{{ $product->id }}" data-price="{{ $product->price }}" {{ $item->product_id == $product->id ? 'selected' : '' }}>{{ $product->name }} {{ $product->item_code ? '('.$product->item_code.')' : '' }}</option>
+                                            <option value="{{ $product->id }}" data-price="{{ $product->price }}" data-description="{{ $product->product_description ?? $product->description ?? '' }}" {{ $item->product_id == $product->id ? 'selected' : '' }}>{{ $product->name }} {{ $product->item_code ? '('.$product->item_code.')' : '' }}</option>
                                         @endforeach
                                     </select>
                                     <input type="hidden" name="items[{{ $index }}][product_name]" class="product-name" value="{{ $item->product_name }}">
+                                    <textarea name="items[{{ $index }}][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" maxlength="250" placeholder="Custom Description (optional)">{{ $item->item_description }}</textarea>
+                                    <div class="char-count-wrapper text-end small text-muted">
+                                        <span class="char-count">{{ strlen($item->item_description ?? '') }}</span> / 250
+                                    </div>
                                 </td>
                                 <td>
                                     <input type="number" name="items[{{ $index }}][quantity]" class="form-control qty-input text-center" value="{{ $item->quantity }}" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
@@ -110,10 +114,14 @@
                                     <select name="items[0][product_id]" class="form-select product-select select2" onchange="updateProduct(this)" required>
                                         <option value="">Select Product (Name / SKU)</option>
                                         @foreach($products as $product)
-                                            <option value="{{ $product->id }}" data-price="{{ $product->price }}">{{ $product->name }} {{ $product->item_code ? '('.$product->item_code.')' : '' }}</option>
+                                            <option value="{{ $product->id }}" data-price="{{ $product->price }}" data-description="{{ $product->product_description ?? $product->description ?? '' }}">{{ $product->name }} {{ $product->item_code ? '('.$product->item_code.')' : '' }}</option>
                                         @endforeach
                                     </select>
                                     <input type="hidden" name="items[0][product_name]" class="product-name">
+                                    <textarea name="items[0][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" maxlength="250" placeholder="Custom Description (optional)"></textarea>
+                                    <div class="char-count-wrapper text-end small text-muted">
+                                        <span class="char-count">0</span> / 250
+                                    </div>
                                 </td>
                                 <td>
                                     <input type="number" name="items[0][quantity]" class="form-control qty-input text-center" value="1" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
@@ -208,14 +216,29 @@
 
 @push('scripts')
 <script>
+    function updateCharCount(textarea) {
+        const countSpan = $(textarea).siblings('.char-count-wrapper').find('.char-count');
+        if (countSpan.length) {
+            countSpan.text(textarea.value.length);
+        }
+    }
+
     function updateProduct(select) {
         const row = select.closest('tr');
         const selectedOption = select.options[select.selectedIndex];
         const price = selectedOption.getAttribute('data-price');
         const name = selectedOption.text;
+        const description = selectedOption.getAttribute('data-description') || '';
         
         row.querySelector('.price-input').value = price || 0;
         row.querySelector('.product-name').value = name;
+        
+        const descTextarea = row.querySelector('.item-description');
+        if (descTextarea) {
+            descTextarea.value = description.substring(0, 250);
+            updateCharCount(descTextarea);
+        }
+        
         calculateRow(select);
         
         if(price) {
@@ -276,10 +299,14 @@
                     <select name="items[${rowCount}][product_id]" class="form-select product-select select2-new-${rowCount}" onchange="updateProduct(this)" required>
                         <option value="">Select Product (Name / SKU)</option>
                         @foreach($products as $product)
-                            <option value="{{ $product->id }}" data-price="{{ $product->price }}">{{ $product->name }} {{ $product->item_code ? '('.$product->item_code.')' : '' }}</option>
+                            <option value="{{ $product->id }}" data-price="{{ $product->price }}" data-description="{{ $product->product_description ?? $product->description ?? '' }}">{{ $product->name }} {{ $product->item_code ? '('.$product->item_code.')' : '' }}</option>
                         @endforeach
                     </select>
                     <input type="hidden" name="items[${rowCount}][product_name]" class="product-name">
+                    <textarea name="items[${rowCount}][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" maxlength="250" placeholder="Custom Description (optional)"></textarea>
+                    <div class="char-count-wrapper text-end small text-muted">
+                        <span class="char-count">0</span> / 250
+                    </div>
                 </td>
                 <td>
                     <input type="number" name="items[${rowCount}][quantity]" class="form-control qty-input text-center" value="1" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
@@ -393,6 +420,11 @@
 
     $(document).ready(function() {
         initQuotationForm();
+        
+        // Character count event delegation
+        $(document).on('input', '.item-description', function() {
+            updateCharCount(this);
+        });
 
         // Initial calculation if editing
         @if(isset($quotation))
