@@ -6,9 +6,23 @@ use Illuminate\Http\Request;
 
 class ExpenseController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $expenses = \App\Models\Expense::latest()->paginate(10);
+        $query = \App\Models\Expense::query();
+
+        if ($request->filled('from_date') && $request->filled('to_date')) {
+            $query->whereBetween('date', [$request->from_date, $request->to_date]);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $expenses = $query->latest('date')->paginate(10)->withQueryString();
         return view('expenses.index', compact('expenses'));
     }
 

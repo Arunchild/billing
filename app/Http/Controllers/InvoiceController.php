@@ -224,6 +224,21 @@ class InvoiceController extends Controller
         ]);
     }
 
+    public function bulkMarkPaid(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:invoices,id'
+        ]);
+
+        Invoice::whereIn('id', $validated['ids'])->update(['status' => 'paid']);
+
+        return response()->json([
+            'success' => true,
+            'message' => count($validated['ids']) . ' invoices marked as paid successfully!'
+        ]);
+    }
+
     public function print($id)
     {
         $invoice = Invoice::with(['customer', 'items'])->findOrFail($id);

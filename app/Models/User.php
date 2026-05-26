@@ -45,4 +45,28 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function staff()
+    {
+        return $this->hasOne(Staff::class, 'user_id');
+    }
+
+    public function hasPermission($menu)
+    {
+        if ($this->email === 'admin') {
+            return true;
+        }
+
+        $staff = $this->staff;
+        if (!$staff) {
+            return true;
+        }
+
+        if ($staff->role === 'admin') {
+            return true;
+        }
+
+        $permissions = $staff->permissions;
+        return is_array($permissions) && in_array($menu, $permissions);
+    }
 }

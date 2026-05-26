@@ -36,9 +36,14 @@
             </div>
 
             <div class="col-md-2 text-end">
-                <a href="{{ route('invoices.create') }}" class="btn btn-primary btn-sm w-100">
-                    <i class="fas fa-plus"></i> Add New Invoice
-                </a>
+                <div class="d-flex gap-1">
+                    <button type="button" class="btn btn-success btn-sm flex-shrink-0" id="btnExport" title="Download Excel">
+                        <i class="fas fa-file-excel"></i> Export
+                    </button>
+                    <a href="{{ route('invoices.create') }}" class="btn btn-primary btn-sm w-100 text-nowrap">
+                        <i class="fas fa-plus"></i> Add New
+                    </a>
+                </div>
             </div>
         </form>
     </div>
@@ -48,8 +53,7 @@
     <span class="fw-bold text-muted small text-uppercase">Invoice(s)</span>
     <div class="d-flex align-items-center gap-3">
         <a href="javascript:void(0)" class="text-decoration-none small text-danger" onclick="bulkDelete()"><i class="fas fa-trash-alt"></i> Delete</a>
-        <a href="javascript:void(0)" class="text-decoration-none small text-success" onclick="alert('Bulk mark as paid not implemented yet')"><i class="fas fa-check-circle"></i> Mark As Paid</a>
-        <a href="javascript:void(0)" class="text-decoration-none small text-primary" onclick="bulkPrint()"><i class="fas fa-print"></i> Print</a>
+        <a href="javascript:void(0)" class="text-decoration-none small text-success" onclick="bulkMarkPaid()"><i class="fas fa-check-circle"></i> Mark As Paid</a>
     </div>
 </div>
 
@@ -204,26 +208,52 @@
             const checkboxes = document.querySelectorAll('input[name="selected_invoices[]"]');
             checkboxes.forEach(cb => cb.checked = this.checked);
         });
+
+        // Excel Export Logic
+        document.getElementById('btnExport')?.addEventListener('click', function() {
+            const from = fromDate.value;
+            const to = toDate.value;
+            const search = document.querySelector('input[name="search"]').value;
+            
+            let url = "{{ route('reports.export') }}?report_type=invoices&filter_type=range";
+            if (from) url += "&from_date=" + from;
+            if (to) url += "&to_date=" + to;
+            if (search) url += "&search=" + encodeURIComponent(search);
+            
+            window.location.href = url;
+        });
     });
 
-    function bulkPrint() {
+    function bulkMarkPaid() {
         const selected = Array.from(document.querySelectorAll('input[name="selected_invoices[]"]:checked')).map(cb => cb.value);
         if (selected.length === 0) {
-            alert('Please select at least one invoice to print.');
+            alert('Please select at least one invoice to mark as paid.');
             return;
         }
-        
-        // For simplicity, just opening the first one or a loop. 
-        // Ideally a bulk print view or PDF merger is needed.
-        // Opening multiple tabs might be blocked.
-        // Let's just open the first one for now or loop if < 3
-        
-        if(selected.length > 5) {
-            if(!confirm('You are about to open ' + selected.length + ' print windows. Continue?')) return;
+
+        if (!confirm('Are you sure you want to mark ' + selected.length + ' invoice(s) as paid?')) {
+            return;
         }
 
-        selected.forEach(id => {
-             window.open('/invoices/' + id + '/print', '_blank');
+        fetch('{{ route("invoices.bulk_mark_paid") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ ids: selected })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload(); 
+            } else {
+                alert('Error: ' + (data.message || 'Unknown error occurred'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
         });
     }
     function bulkDelete() {

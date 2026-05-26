@@ -19,11 +19,18 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->filled('print_name') && !$request->filled('name')) {
+            $request->merge(['name' => $request->print_name]);
+        }
+        if (!$request->filled('brand')) {
+            $request->merge(['brand' => 'Generic']);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'brand' => 'required|string',
+            'brand' => 'nullable|string',
             'sale_price' => 'required|numeric|min:0',
-            'purchase_price' => 'required|numeric|min:0',
+            'purchase_price' => 'nullable|numeric|min:0',
             'unit' => 'required|string',
         ]);
 
@@ -70,11 +77,18 @@ class ProductController extends Controller
     {
         $product = \App\Models\Product::findOrFail($id);
         
+        if ($request->filled('print_name') && !$request->filled('name')) {
+            $request->merge(['name' => $request->print_name]);
+        }
+        if (!$request->filled('brand')) {
+            $request->merge(['brand' => 'Generic']);
+        }
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'brand' => 'required|string',
+            'brand' => 'nullable|string',
             'sale_price' => 'required|numeric|min:0',
-            'purchase_price' => 'required|numeric|min:0',
+            'purchase_price' => 'nullable|numeric|min:0',
             'unit' => 'required|string',
         ]);
 

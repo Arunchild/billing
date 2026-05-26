@@ -28,4 +28,13 @@ class Product extends Model
         'not_for_sale' => 'boolean',
         'enable_tracking' => 'boolean',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($product) {
+            if (empty($product->price)) {
+                $product->price = $product->sale_price ?? 0;
+            }
+        });
+    }
 }

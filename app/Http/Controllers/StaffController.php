@@ -26,7 +26,19 @@ class StaffController extends Controller
             'role' => 'nullable|string',
             'username' => 'nullable|string|unique:users,email',
             'password' => 'nullable|string|min:6',
+            'permissions' => 'nullable|array',
         ]);
+
+        // If login credentials provided, create a User account
+        $userId = null;
+        if (!empty($request->username) && !empty($request->password)) {
+            $user = \App\Models\User::create([
+                'name' => $validated['name'],
+                'email' => $request->username, // Using username field as email for login
+                'password' => bcrypt($request->password),
+            ]);
+            $userId = $user->id;
+        }
 
         // Create the Staff record
         $staff = \App\Models\Staff::create([
@@ -34,16 +46,9 @@ class StaffController extends Controller
             'phone' => $validated['phone'],
             'email' => $validated['email'],
             'role' => $validated['role'],
+            'user_id' => $userId,
+            'permissions' => $request->input('permissions', []),
         ]);
-
-        // If login credentials provided, create a User account
-        if (!empty($request->username) && !empty($request->password)) {
-            \App\Models\User::create([
-                'name' => $validated['name'],
-                'email' => $request->username, // Using username field as email for login
-                'password' => bcrypt($request->password),
-            ]);
-        }
 
         return redirect()->route('staff.index')->with('success', 'Staff member and login access created successfully.');
     }
@@ -63,9 +68,43 @@ class StaffController extends Controller
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email',
             'role' => 'nullable|string',
+            'username' => 'nullable|string|unique:users,email,' . ($staff->user_id ?? 'NULL'),
+            'password' => 'nullable|string|min:6',
+            'permissions' => 'nullable|array',
         ]);
 
-        $staff->update($validated);
+        // Handle User login account update or creation
+        $userId = $staff->user_id;
+        if ($userId) {
+            $user = \App\Models\User::find($userId);
+            if ($user) {
+                $userUpdates = ['name' => $validated['name']];
+                if (!empty($request->username)) {
+                    $userUpdates['email'] = $request->username;
+                }
+                if (!empty($request->password)) {
+                    $userUpdates['password'] = bcrypt($request->password);
+                }
+                $user->update($userUpdates);
+            }
+        } elseif (!empty($request->username) && !empty($request->password)) {
+            $user = \App\Models\User::create([
+                'name' => $validated['name'],
+                'email' => $request->username,
+                'password' => bcrypt($request->password),
+            ]);
+            $userId = $user->id;
+        }
+
+        // Update Staff details and permissions
+        $staff->update([
+            'name' => $validated['name'],
+            'phone' => $validated['phone'],
+            'email' => $validated['email'],
+            'role' => $validated['role'],
+            'user_id' => $userId,
+            'permissions' => $request->input('permissions', []),
+        ]);
 
         return redirect()->route('staff.index')->with('success', 'Staff details updated successfully.');
     }
@@ -73,7 +112,17 @@ class StaffController extends Controller
     public function destroy(string $id)
     {
         $staff = \App\Models\Staff::findOrFail($id);
+        $userId = $staff->user_id;
+        
         $staff->delete();
+
+        // Remove linked user login account
+        if ($userId) {
+            $user = \App\Models\User::find($userId);
+            if ($user) {
+                $user->delete();
+            }
+        }
 
         return redirect()->route('staff.index')->with('success', 'Staff member removed successfully.');
     }

@@ -253,9 +253,12 @@
         }
     </style>
     <ul class="sidebar-menu">
+        @if(auth()->user()->hasPermission('dashboard'))
         <li><a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}"><i class="fas fa-th-large"></i> Dashboard</a></li>
+        @endif
         
         <!-- Sale Menu -->
+        @if(auth()->user()->hasPermission('invoice') || auth()->user()->hasPermission('sale_return') || auth()->user()->hasPermission('quotation'))
         <li>
             <a href="#saleSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('invoices.*') || request()->routeIs('sale_returns.*') || request()->routeIs('quotations.*') ? 'active' : '' }}">
                 <i class="fas fa-file-invoice"></i> Sale
@@ -263,6 +266,7 @@
             <ul class="collapse submenu {{ request()->routeIs('invoices.*') || request()->routeIs('sale_returns.*') || request()->routeIs('quotations.*') ? 'show' : '' }}" id="saleSubmenu">
                 
                 <!-- Invoice Submenu -->
+                @if(auth()->user()->hasPermission('invoice'))
                 <li>
                     <a href="#invoiceSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('invoices.*') ? 'text-white' : '' }}">
                         <i class="fas fa-file-alt"></i> Invoice
@@ -272,8 +276,10 @@
                         <li><a href="{{ route('invoices.index') }}" class="{{ request()->routeIs('invoices.index') ? 'active' : '' }}">Search & Manage</a></li>
                     </ul>
                 </li>
+                @endif
 
                 <!-- Sale Return Submenu -->
+                @if(auth()->user()->hasPermission('sale_return'))
                 <li>
                     <a href="#saleReturnSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('sale_returns.*') ? 'text-white' : '' }}">
                         <i class="fas fa-undo"></i> Sale Return
@@ -283,8 +289,10 @@
                         <li><a href="{{ route('sale_returns.index') }}" class="{{ request()->routeIs('sale_returns.index') ? 'active' : '' }}">Search & Manage</a></li>
                     </ul>
                 </li>
+                @endif
 
                 <!-- Quotation Submenu -->
+                @if(auth()->user()->hasPermission('quotation'))
                 <li>
                     <a href="#quotationSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('quotations.*') ? 'text-white' : '' }}">
                         <i class="fas fa-file-contract"></i> Quotation
@@ -294,10 +302,20 @@
                         <li><a href="{{ route('quotations.index') }}" class="{{ request()->routeIs('quotations.index') ? 'active' : '' }}">Search & Manage</a></li>
                     </ul>
                 </li>
+                @endif
             </ul>
         </li>
+        @endif
 
         <!-- Purchase Menu -->
+        @if(
+            auth()->user()->hasPermission('purchase_bill') ||
+            auth()->user()->hasPermission('purchase_return') ||
+            auth()->user()->hasPermission('purchase_order') ||
+            auth()->user()->hasPermission('debit_note') ||
+            auth()->user()->hasPermission('credit_note') ||
+            auth()->user()->hasPermission('supplier')
+        )
         <li>
             <a href="#purchaseSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('purchases.*') || request()->routeIs('purchase_returns.*') || request()->routeIs('purchase_orders.*') || request()->routeIs('debit_notes.*') || request()->routeIs('credit_notes.*') || request()->routeIs('suppliers.*') ? 'active' : '' }}">
                 <i class="fas fa-shopping-bag"></i> Purchase
@@ -305,6 +323,7 @@
             <ul class="collapse submenu {{ request()->routeIs('purchases.*') || request()->routeIs('purchase_returns.*') || request()->routeIs('purchase_orders.*') || request()->routeIs('debit_notes.*') || request()->routeIs('credit_notes.*') || request()->routeIs('suppliers.*') ? 'show' : '' }}" id="purchaseSubmenu">
                 
                 <!-- Purchase Bill Submenu -->
+                @if(auth()->user()->hasPermission('purchase_bill'))
                 <li>
                     <a href="#purchaseBillSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('purchases.*') ? 'text-white' : '' }}">
                         <i class="fas fa-file-invoice-dollar"></i> Purchase Bill
@@ -314,8 +333,10 @@
                         <li><a href="{{ route('purchases.index') }}" class="{{ request()->routeIs('purchases.index') ? 'active' : '' }}">Search & Manage</a></li>
                     </ul>
                 </li>
+                @endif
 
                 <!-- Purchase Return Submenu -->
+                @if(auth()->user()->hasPermission('purchase_return'))
                 <li>
                     <a href="#purchaseReturnSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('purchase_returns.*') ? 'text-white' : '' }}">
                         <i class="fas fa-undo"></i> Purchase Return
@@ -325,8 +346,10 @@
                         <li><a href="{{ route('purchase_returns.index') }}" class="{{ request()->routeIs('purchase_returns.index') ? 'active' : '' }}">Search & Manage</a></li>
                     </ul>
                 </li>
+                @endif
 
                 <!-- Purchase Order Submenu -->
+                @if(auth()->user()->hasPermission('purchase_order'))
                 <li>
                     <a href="#purchaseOrderSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('purchase_orders.*') ? 'text-white' : '' }}">
                         <i class="fas fa-clipboard-list"></i> Purchase Order
@@ -336,8 +359,10 @@
                         <li><a href="{{ route('purchase_orders.index') }}" class="{{ request()->routeIs('purchase_orders.index') ? 'active' : '' }}">Search & Manage</a></li>
                     </ul>
                 </li>
+                @endif
 
                 <!-- Debit Note Submenu -->
+                @if(auth()->user()->hasPermission('debit_note'))
                 <li>
                     <a href="#debitNoteSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('debit_notes.*') ? 'text-white' : '' }}">
                         <i class="fas fa-file-invoice-dollar"></i> Debit Note
@@ -347,8 +372,10 @@
                         <li><a href="{{ route('debit_notes.index') }}" class="{{ request()->routeIs('debit_notes.index') ? 'active' : '' }}">Search & Manage</a></li>
                     </ul>
                 </li>
+                @endif
 
                 <!-- Credit Note Submenu -->
+                @if(auth()->user()->hasPermission('credit_note'))
                 <li>
                     <a href="#creditNoteSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('credit_notes.*') ? 'text-white' : '' }}">
                         <i class="fas fa-file-invoice-dollar"></i> Credit Note
@@ -358,8 +385,10 @@
                         <li><a href="{{ route('credit_notes.index') }}" class="{{ request()->routeIs('credit_notes.index') ? 'active' : '' }}">Search & Manage</a></li>
                     </ul>
                 </li>
+                @endif
 
                 <!-- Supplier Submenu -->
+                @if(auth()->user()->hasPermission('supplier'))
                 <li>
                     <a href="#supplierSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('suppliers.*') ? 'text-white' : '' }}">
                         <i class="fas fa-users"></i> Supplier
@@ -369,18 +398,46 @@
                         <li><a href="{{ route('suppliers.index') }}" class="{{ request()->routeIs('suppliers.index') ? 'active' : '' }}">Search & Manage</a></li>
                     </ul>
                 </li>
+                @endif
             </ul>
         </li>
+        @endif
 
+        @if(auth()->user()->hasPermission('inventory'))
         <li><a href="{{ route('inventory.index') }}" class="{{ request()->routeIs('inventory.*') ? 'active' : '' }}"><i class="fas fa-boxes"></i> Inventory</a></li>
+        @endif
+
+        @if(auth()->user()->hasPermission('accounts'))
         <li><a href="{{ route('accounts.index') }}" class="{{ request()->routeIs('accounts.*') ? 'active' : '' }}"><i class="fas fa-calculator"></i> Accounts</a></li>
+        @endif
+
+        @if(auth()->user()->hasPermission('expense'))
         <li><a href="{{ route('expenses.index') }}" class="{{ request()->routeIs('expenses.*') ? 'active' : '' }}"><i class="fas fa-wallet"></i> Expense</a></li>
+        @endif
+
+        @if(auth()->user()->hasPermission('customer'))
         <li><a href="{{ route('customers.index') }}" class="{{ request()->routeIs('customers.*') ? 'active' : '' }}"><i class="fas fa-users"></i> Customer</a></li>
-        <li><a href="{{ route('invoices.index') }}" class="{{ request()->routeIs('invoices.index') ? 'active' : '' }}"><i class="fas fa-chart-bar"></i> Reports</a></li>
+        @endif
+
+        @if(auth()->user()->hasPermission('reports'))
+        <li><a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}"><i class="fas fa-chart-bar"></i> Reports</a></li>
+        @endif
+
+        @if(auth()->user()->hasPermission('staff'))
         <li><a href="{{ route('staff.index') }}" class="{{ request()->routeIs('staff.*') ? 'active' : '' }}"><i class="fas fa-user-tie"></i> Staff</a></li>
+        @endif
+
+        @if(auth()->user()->hasPermission('tools'))
         <li><a href="{{ route('tools.index') }}" class="{{ request()->routeIs('tools.*') ? 'active' : '' }}"><i class="fas fa-tools"></i> Tools</a></li>
+        @endif
+
+        @if(auth()->user()->hasPermission('master'))
         <li><a href="{{ route('master.index') }}" class="{{ request()->routeIs('master.*') ? 'active' : '' }}"><i class="fas fa-database"></i> Master</a></li>
+        @endif
+
+        @if(auth()->user()->hasPermission('settings'))
         <li><a href="{{ route('settings.index') }}" class="{{ request()->routeIs('settings.*') ? 'active' : '' }}"><i class="fas fa-cog"></i> Settings</a></li>
+        @endif
     </ul>
 </nav>
 
@@ -399,7 +456,28 @@
                 <div class="small text-muted">Helpline : +91-6262 9898 04</div>
             </div>
             <a href="#" class="text-secondary"><i class="fas fa-cloud-upload-alt fa-lg"></i></a>
-            <a href="#" class="text-secondary"><i class="fas fa-user-circle fa-lg"></i></a>
+            
+            <div class="dropdown">
+                <a href="#" class="text-secondary dropdown-toggle d-flex align-items-center gap-2 text-decoration-none" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-user-circle fa-lg text-primary"></i>
+                    <span class="fw-medium text-dark small d-none d-md-inline">{{ auth()->user()->name }}</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                    <li class="px-3 py-2 border-bottom">
+                        <p class="text-muted mb-0 small" style="font-size: 0.7rem;">Signed in as</p>
+                        <p class="fw-bold mb-0 text-truncate text-dark small" style="max-width: 150px;">{{ auth()->user()->email }}</p>
+                    </li>
+                    <li>
+                        <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="dropdown-item text-danger py-2 small">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+
             <a href="#" class="text-secondary"><i class="fas fa-calculator fa-lg"></i></a>
             <a href="#" class="text-secondary"><i class="fas fa-bell fa-lg"></i></a>
             <a href="#" class="text-secondary"><i class="fas fa-money-bill-wave fa-lg"></i></a>

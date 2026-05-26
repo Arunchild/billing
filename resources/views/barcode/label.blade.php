@@ -20,6 +20,8 @@
             html, body {
                 width: 2.5in;
                 height: 1.5in;
+                border: none !important;
+                overflow: hidden !important;
             }
             .no-print {
                 display: none !important;
@@ -30,9 +32,10 @@
             font-family: Arial, sans-serif;
             width: 2.5in;
             height: 1.5in;
-            padding: 0.1in;
+            padding: 0.05in;
             margin: 0 auto;
             border: 1px solid #ccc;
+            overflow: hidden;
         }
         
         .label {
@@ -41,45 +44,50 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
         }
         
         .company {
             font-weight: bold;
-            font-size: 8pt;
+            font-size: 7.5pt;
             text-align: center;
             margin-bottom: 2px;
         }
         
         .barcode-container {
-            margin: 3px 0;
+            margin: 2px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
         }
         
         #barcode {
-            max-width: 2.2in;
+            max-width: 2.3in;
+            display: block;
         }
         
         .barcode-text {
             font-weight: bold;
-            font-size: 10pt;
+            font-size: 8pt;
             text-align: center;
-            margin-top: 2px;
+            margin-top: 1px;
         }
         
         .info {
-            font-size: 7pt;
+            font-size: 6.5pt;
             line-height: 1.2;
             text-align: center;
             width: 100%;
         }
         
         .info-row {
-            margin: 1px 0;
+            margin: 0.5px 0;
         }
         
         .name {
             font-weight: bold;
-            font-size: 9pt;
+            font-size: 8pt;
         }
         
         .no-print {
@@ -107,7 +115,7 @@
 <body>
     <div class="no-print">
         <button class="print-btn" onclick="window.print()">
-            <i class="fas fa-print"></i> Print Label
+            Print Label
         </button>
         <button class="print-btn" onclick="window.close()" style="background: #6c757d; margin-left: 5px;">
             Close
@@ -123,10 +131,8 @@
         
         <div class="info">
             <div class="info-row name">Mr. {{ strtoupper($customer->name) }}</div>
-            <div class="info-row"><strong>Reg No:</strong> {{ $customer->reg_no }}</div>
-            <div class="info-row"><strong>Gender/Age:</strong> {{ $customer->gender ?? 'M' }} / {{ $customer->age ?? '-' }} Y</div>
-            <div class="info-row"><strong>Mobile:</strong> {{ $customer->phone ?? '-' }}</div>
-            <div class="info-row"><strong>City:</strong> {{ $customer->city ?? 'MARTHANDAM' }}</div>
+            <div class="info-row"><strong>Reg No:</strong> {{ $customer->reg_no }} &nbsp;|&nbsp; <strong>Gen/Age:</strong> {{ $customer->gender ?? 'M' }} / {{ $customer->age ?? '-' }} Y</div>
+            <div class="info-row"><strong>Mobile:</strong> {{ $customer->phone ?? '-' }} &nbsp;|&nbsp; <strong>City:</strong> {{ $customer->city ?? 'MARTHANDAM' }}</div>
         </div>
     </div>
     
@@ -136,21 +142,14 @@
         
         JsBarcode("#barcode", barcodeValue, {
             format: "CODE128",
-            width: 1.5,
-            height: 35,
+            width: 1.2,
+            height: 25,
             displayValue: true,
-            fontSize: 12,
+            fontSize: 9,
             margin: 0,
             background: "#ffffff",
             lineColor: "#000000"
         });
-        
-        // Auto print when page loads (optional - comment out if not needed)
-        // window.onload = function() {
-        //     setTimeout(function() {
-        //         window.print();
-        //     }, 500);
-        // };
     </script>
 </body>
 </html>

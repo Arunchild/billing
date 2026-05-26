@@ -36,9 +36,14 @@
             </div>
 
             <div class="col-md-2 text-end">
-                <a href="{{ route('quotations.create') }}" class="btn btn-primary btn-sm w-100">
-                    <i class="fas fa-plus"></i> New Quotation
-                </a>
+                <div class="d-flex gap-1">
+                    <button type="button" class="btn btn-success btn-sm flex-shrink-0" id="btnExport" title="Download Excel">
+                        <i class="fas fa-file-excel"></i> Export
+                    </button>
+                    <a href="{{ route('quotations.create') }}" class="btn btn-primary btn-sm w-100 text-nowrap">
+                        <i class="fas fa-plus"></i> New
+                    </a>
+                </div>
             </div>
         </form>
     </div>
@@ -160,6 +165,20 @@
         document.getElementById('selectAll')?.addEventListener('change', function() {
             const checkboxes = document.querySelectorAll('input[name="selected_quotations[]"]');
             checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+
+        // Excel Export Logic
+        document.getElementById('btnExport')?.addEventListener('click', function() {
+            const from = fromDate.value;
+            const to = toDate.value;
+            const search = document.querySelector('input[name="search"]').value;
+            
+            let url = "{{ route('reports.export') }}?report_type=quotations&filter_type=range";
+            if (from) url += "&from_date=" + from;
+            if (to) url += "&to_date=" + to;
+            if (search) url += "&search=" + encodeURIComponent(search);
+            
+            window.location.href = url;
         });
     });
 

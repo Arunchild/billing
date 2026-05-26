@@ -11,7 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->prepend(\App\Http\Middleware\AutoLoginIfDisabled::class);
+        $middleware->alias([
+            'permission' => \App\Http\Middleware\CheckMenuPermission::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

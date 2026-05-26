@@ -6,26 +6,26 @@
     <style>
         body { 
             font-family: 'Times New Roman', Times, serif; 
-            font-size: 13px; 
-            line-height: 1.4; 
+            font-size: 11px; 
+            line-height: 1.25; 
             color: #000; 
             background-color: #fff; 
             margin: 0;
-            padding: 20px;
+            padding: 5px;
             box-sizing: border-box;
         }
         .container { 
             width: 100%; 
-            max-width: 900px; 
+            max-width: 100%; 
             margin: 0 auto; 
             border: 1px solid #000; 
             background-color: #fff;
         }
-        .no-print { margin-bottom: 20px; text-align: right; }
+        .no-print { margin-bottom: 10px; text-align: right; }
         
         /* Typography */
-        h2 { font-size: 16px; margin: 0 0 5px 0; font-weight: bold; }
-        p { margin: 0 0 3px 0; }
+        h2 { font-size: 13px; margin: 0 0 3px 0; font-weight: bold; }
+        p { margin: 0 0 2px 0; }
         
         /* Layout */
         .w-100 { width: 100%; }
@@ -50,7 +50,7 @@
         
         .right-col {
             width: 40%;
-            padding: 20px 0 0 20px;
+            padding: 10px 0 0 10px;
         }
         
         .company-header {
@@ -59,9 +59,9 @@
         }
         
         .logo-box {
-            width: 150px;
+            width: 110px;
             background-color: #fff; 
-            padding: 10px;
+            padding: 5px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -70,7 +70,7 @@
         
         .company-info {
             flex: 1;
-            padding: 10px;
+            padding: 5px;
             text-align: center;
             display: flex;
             flex-direction: column;
@@ -79,13 +79,13 @@
         }
         
         .billed-to {
-            padding: 10px 20px;
-            min-height: 100px;
+            padding: 5px 10px;
+            min-height: 60px;
         }
         
         .invoice-meta-item {
-            margin-bottom: 15px;
-            font-size: 14px;
+            margin-bottom: 8px;
+            font-size: 11px;
         }
         
         /* Items Table */
@@ -96,16 +96,16 @@
         .items-table th { 
             border-bottom: 1px solid #000; 
             border-right: 1px solid #000; 
-            padding: 12px 4px; 
-            font-weight: normal;
-            font-size: 11px;
+            padding: 6px 3px; 
+            font-weight: bold;
+            font-size: 10px;
             text-align: center;
             text-transform: uppercase;
         }
         .items-table td { 
             border-right: 1px solid #000; 
-            padding: 8px; 
-            vertical-align: top;
+            padding: 4px 6px; 
+            vertical-align: middle;
         }
         .items-table th:last-child, .items-table td:last-child { border-right: none; }
         
@@ -117,7 +117,7 @@
         
         /* Spacer row that stretches the empty space */
         .spacer-row td {
-            height: 250px; /* Minimum height for the item area */
+            height: 30px; /* Compact height for the item area */
         }
         
         /* Totals / Words row */
@@ -128,39 +128,39 @@
         }
         .amount-words-col {
             width: 73%;
-            padding: 15px 10px;
+            padding: 6px 8px;
             border-right: 1px solid #000;
         }
         .total-label-col {
             width: 12%;
-            padding: 15px 10px;
+            padding: 6px 8px;
             text-align: center;
             border-right: 1px solid #000;
         }
         .total-val-col {
             width: 15%;
-            padding: 15px 10px;
+            padding: 6px 8px;
             text-align: right;
         }
         
         /* Footer Tax row */
         .tax-footer {
-            padding: 15px 10px;
-            min-height: 80px;
+            padding: 6px 8px;
+            min-height: 40px;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
         .tax-line {
-            margin-bottom: 8px;
-            font-size: 13px;
+            margin-bottom: 3px;
+            font-size: 11px;
         }
 
         @media print {
             .no-print { display: none; }
             @page {
-                size: A4;
-                margin: 5mm;
+                size: A5 landscape;
+                margin: 3mm;
             }
             body { 
                 background-color: #fff;
@@ -170,7 +170,7 @@
                 width: 100%;
             }
             .container { 
-                border: 2px solid #000; 
+                border: 1px solid #000; 
                 margin: 0; 
                 width: 100%;
                 max-width: 100%;
@@ -179,7 +179,7 @@
                 page-break-inside: avoid;
             }
             .logo-box { background-color: #fff !important; }
-            .spacer-row td { height: auto !important; min-height: 50px; }
+            .spacer-row td { height: 20px !important; }
             table { page-break-inside: auto; }
             tr { page-break-inside: avoid; page-break-after: auto; }
         }
@@ -197,7 +197,7 @@
             <div class="left-col">
                 <div class="company-header">
                     <div class="logo-box">
-                        <img src="{{ asset('images/biofix-logo.jpg') }}" alt="BIOFIX" style="max-width: 120px; max-height: 80px;">
+                        <img src="{{ asset('images/biofix-logo.jpg') }}" alt="BIOFIX" style="max-width: 90px; max-height: 50px;">
                     </div>
                     <div class="company-info">
                         <h2>BIOFIX HEALTHCARE PVT. LTD.</h2>
@@ -207,14 +207,14 @@
                     </div>
                 </div>
                 <div class="billed-to">
-                    <p style="margin-left: 10px; font-size: 15px;">To,</p>
-                    <div style="margin-left: 50px; margin-top: 15px; margin-bottom: 25px;">
+                    <p style="margin-left: 10px; font-size: 12px;">To,</p>
+                    <div style="margin-left: 30px; margin-top: 5px; margin-bottom: 8px;">
                         <p><strong>{{ $invoice->customer_name ?? $invoice->customer->name }}</strong></p>
                         <p>{!! nl2br(e($invoice->customer_address ?? $invoice->customer->address)) !!}</p>
                         <p>{{ $invoice->customer->city ?? '' }} {{ $invoice->customer->pincode ? '- '.$invoice->customer->pincode : '' }}</p>
                         <p>Phone: {{ $invoice->customer->phone ?? '' }}</p>
                     </div>
-                    <p style="margin-left: 10px; margin-top: 10px;">GSTIN: &nbsp;&nbsp; {{ $invoice->customer_gstin ?? $invoice->customer->gstin ?? '' }}</p>
+                    <p style="margin-left: 10px; margin-top: 5px;">GSTIN: &nbsp;&nbsp; {{ $invoice->customer_gstin ?? $invoice->customer->gstin ?? '' }}</p>
                 </div>
             </div>
             
@@ -264,7 +264,7 @@
                 
                 <!-- Spacer Row to fill height -->
                 <tr class="spacer-row">
-                    <td style="min-height: 150px; height: 150px;"></td>
+                    <td style="height: 20px;"></td>
                     <td></td>
                     <td></td>
                     <td></td>

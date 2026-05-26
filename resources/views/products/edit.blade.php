@@ -26,34 +26,27 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label">Group</label>
-                        <select name="group" class="form-select">
-                            <option value="">Select Group</option>
-                            <option value="Electronics" {{ $product->group == 'Electronics' ? 'selected' : '' }}>Electronics</option>
-                            <option value="Clothing" {{ $product->group == 'Clothing' ? 'selected' : '' }}>Clothing</option>
-                            <option value="Groceries" {{ $product->group == 'Groceries' ? 'selected' : '' }}>Groceries</option>
-                            <option value="Hardware" {{ $product->group == 'Hardware' ? 'selected' : '' }}>Hardware</option>
-                        </select>
+                        <div class="input-group">
+                            <select name="group" id="groupSelect" class="form-select">
+                                <option value="">Select Group</option>
+                            </select>
+                            <button type="button" class="btn btn-outline-success" id="btnAddGroup" title="Add Group">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" id="btnRemoveGroup" title="Remove Selected Group">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Brand <span class="text-danger">*</span></label>
-                        <select name="brand" class="form-select" required>
-                            <option value="">Select Brand</option>
-                            <option value="Generic" {{ $product->brand == 'Generic' ? 'selected' : '' }}>Generic</option>
-                            <option value="Brand-A" {{ $product->brand == 'Brand-A' ? 'selected' : '' }}>Brand-A</option>
-                            <option value="Brand-B" {{ $product->brand == 'Brand-B' ? 'selected' : '' }}>Brand-B</option>
-                        </select>
-                    </div>
+                    <input type="hidden" name="brand" value="{{ $product->brand ?? 'Generic' }}">
                     <div class="mb-3">
                         <label class="form-label">Item Code</label>
                         <input type="text" name="item_code" class="form-control" value="{{ $product->item_code }}" placeholder="Auto-generated or custom">
                     </div>
+                    <input type="hidden" name="name" id="nameHidden" value="{{ $product->name }}">
                     <div class="mb-3">
-                        <label class="form-label">Product Name <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control" value="{{ $product->name }}" required placeholder="Enter product name">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Print Name</label>
-                        <input type="text" name="print_name" class="form-control" value="{{ $product->print_name }}" placeholder="Name for invoice printing">
+                        <label class="form-label">Print Name <span class="text-danger">*</span></label>
+                        <input type="text" name="print_name" id="printNameInput" class="form-control" value="{{ $product->print_name }}" required placeholder="Name for invoice printing">
                     </div>
                 </div>
             </div>
@@ -65,10 +58,10 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label class="form-label">Purchase Price <span class="text-danger">*</span></label>
+                        <label class="form-label">Purchase Price</label>
                         <div class="input-group">
                             <span class="input-group-text bg-primary text-white">₹</span>
-                            <input type="number" step="0.01" name="purchase_price" class="form-control" value="{{ $product->purchase_price }}" required>
+                            <input type="number" step="0.01" name="purchase_price" class="form-control" value="{{ $product->purchase_price }}">
                             <span class="input-group-text bg-light">Excluding Tax</span>
                         </div>
                     </div>
@@ -78,13 +71,6 @@
                             <span class="input-group-text bg-primary text-white">₹</span>
                             <input type="number" step="0.01" name="sale_price" class="form-control" value="{{ $product->sale_price }}" required>
                             <span class="input-group-text bg-light">Including Tax</span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Min. Sale Price</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-primary text-white">₹</span>
-                            <input type="number" step="0.01" name="min_sale_price" class="form-control" value="{{ $product->min_sale_price }}">
                         </div>
                     </div>
                     <div class="mb-3">
@@ -279,9 +265,89 @@
     </div>
 </form>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 document.querySelector('textarea[name="product_description"]').addEventListener('input', function() {
     document.getElementById('charCount').textContent = this.value.length;
+});
+
+function loadProductGroups(selectedVal = '') {
+    $.getJSON('{{ route("product_groups.index") }}', function(data) {
+        let select = $('#groupSelect');
+        select.empty().append('<option value="">Select Group</option>');
+        data.forEach(function(item) {
+            let selected = (item.name === selectedVal) ? 'selected' : '';
+            select.append(`<option value="${item.name}" data-id="${item.id}" ${selected}>${item.name}</option>`);
+        });
+    });
+}
+
+$(document).ready(function() {
+    loadProductGroups('{{ $product->group }}');
+
+    $('#printNameInput').on('input', function() {
+        $('#nameHidden').val($(this).val());
+    });
+
+    $('#btnAddGroup').on('click', function() {
+        let name = prompt("Enter new Group name:");
+        if (name) {
+            name = name.trim();
+            if (name === '') return;
+            $.ajax({
+                url: '{{ route("product_groups.store") }}',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    name: name
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        loadProductGroups(response.group.name);
+                    }
+                },
+                error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        $.each(errors, function(key, val) {
+                            toastr.error(val[0]);
+                        });
+                    } else {
+                        toastr.error('Failed to add group');
+                    }
+                }
+            });
+        }
+    });
+
+    $('#btnRemoveGroup').on('click', function() {
+        let selectedOption = $('#groupSelect option:selected');
+        let groupId = selectedOption.data('id');
+        let groupName = selectedOption.val();
+        if (!groupName) {
+            toastr.warning('Please select a group to remove');
+            return;
+        }
+        if (confirm(`Are you sure you want to remove the group "${groupName}"?`)) {
+            $.ajax({
+                url: `{{ url('product-groups') }}/${groupId}`,
+                method: 'DELETE',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        loadProductGroups('');
+                    }
+                },
+                error: function(xhr) {
+                    toastr.error('Failed to remove group');
+                }
+            });
+        }
+    });
 });
 </script>
 @endsection

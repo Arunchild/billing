@@ -35,9 +35,6 @@
         .title-right { width: 30%; padding: 5px; font-size: 11px; display: flex; flex-direction: column; justify-content: center; }
         
         /* Billing Section */
-        .mr-mrs-row { display: flex; border-bottom: 1px solid #000; }
-        .mr-mrs-label { width: 20%; padding: 5px; text-align: center; border-right: 1px solid #000; }
-        .mr-mrs-value { width: 80%; padding: 5px; }
         
         .billing-grid { display: flex; border-bottom: 1px solid #000; }
         .billing-address-box { width: 50%; padding: 5px; border-right: 1px solid #000; }
@@ -114,12 +111,7 @@
             </div>
         </div>
 
-        <!-- Billing Grid -->
-        <div class="mr-mrs-row">
-            <div class="mr-mrs-label">Mr/Mrs</div>
-            <div class="mr-mrs-value"></div>
-        </div>
-        
+
         <div class="billing-grid">
             <div class="billing-address-box">
                 <div>Billing Address:</div>
