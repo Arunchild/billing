@@ -70,7 +70,7 @@ class SaleReturnController extends Controller
         $customers = Customer::all();
         $products = Product::all();
         $invoices = \App\Models\Invoice::latest()->get(['id', 'invoice_number', 'customer_id']); 
-        $nextId = SaleReturn::max('id') + 1;
+        $nextId = SaleReturn::withTrashed()->max('id') + 1;
         $returnNumber = 'SR-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
         
         return view('sale_returns.create', compact('customers', 'products', 'invoices', 'returnNumber'));
@@ -125,7 +125,7 @@ class SaleReturnController extends Controller
                 'success' => true,
                 'message' => 'Sale Return created successfully!',
                 'sale_return_id' => $saleReturn->id,
-                'next_return_number' => 'SR-' . str_pad(SaleReturn::max('id') + 1, 5, '0', STR_PAD_LEFT)
+                'next_return_number' => 'SR-' . str_pad(SaleReturn::withTrashed()->max('id') + 1, 5, '0', STR_PAD_LEFT)
             ]);
         }
 

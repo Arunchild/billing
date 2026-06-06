@@ -84,7 +84,7 @@
                     <td>
                         {{ $item->product_name }}
                         @if($item->item_description)
-                            <br><small style="color: #555; font-size: 11px;">{{ $item->item_description }}</small>
+                            <br><small style="color: #555; font-size: 11px;">{!! $item->item_description !!}</small>
                         @endif
                     </td>
                     <td class="text-center">{{ $item->quantity }}</td>

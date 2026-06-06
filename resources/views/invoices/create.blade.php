@@ -84,10 +84,7 @@
                                         @endforeach
                                     </select>
                                     <input type="hidden" name="items[{{$index}}][product_name]" class="product-name" value="{{ $item->product_name }}">
-                                    <textarea name="items[{{$index}}][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" maxlength="250" placeholder="Custom Description (optional)">{{ $item->item_description }}</textarea>
-                                    <div class="char-count-wrapper text-end small text-muted">
-                                        <span class="char-count">{{ strlen($item->item_description ?? '') }}</span> / 250
-                                    </div>
+                                    <textarea name="items[{{$index}}][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" placeholder="Custom Description (optional)">{{ $item->item_description }}</textarea>
                                 </td>
                                 <td>
                                     <input type="number" name="items[{{$index}}][quantity]" class="form-control qty-input text-center" value="{{ $item->quantity }}" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
@@ -119,10 +116,7 @@
                                         @endforeach
                                     </select>
                                     <input type="hidden" name="items[0][product_name]" class="product-name">
-                                    <textarea name="items[0][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" maxlength="250" placeholder="Custom Description (optional)"></textarea>
-                                    <div class="char-count-wrapper text-end small text-muted">
-                                        <span class="char-count">0</span> / 250
-                                    </div>
+                                    <textarea name="items[0][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" placeholder="Custom Description (optional)"></textarea>
                                 </td>
                                 <td>
                                     <input type="number" name="items[0][quantity]" class="form-control qty-input text-center" value="1" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
@@ -210,13 +204,62 @@
 </form>
 
 @push('scripts')
+<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+<style>
+    .ck-editor__editable_inline {
+        min-height: 80px !important;
+    }
+</style>
 <script>
-    // Invoice Logic 
-    function updateCharCount(textarea) {
-        const countSpan = $(textarea).siblings('.char-count-wrapper').find('.char-count');
-        if (countSpan.length) {
-            countSpan.text(textarea.value.length);
+    // CKEditor Instances Map
+    let editors = {};
+
+    function initEditor(textarea) {
+        if (!textarea) return;
+        const id = textarea.getAttribute('id') || 'editor-' + Math.random().toString(36).substring(2, 9);
+        textarea.setAttribute('id', id);
+        
+        // Destroy if already exists to prevent duplication
+        if (editors[id]) {
+            editors[id].destroy().then(() => {
+                delete editors[id];
+                createEditor(textarea, id);
+            });
+        } else {
+            createEditor(textarea, id);
         }
+    }
+
+    function createEditor(textarea, id) {
+        ClassicEditor
+            .create(textarea, {
+                toolbar: [ 'bold', 'italic', '|', 'bulletedList', 'numberedList', '|', 'undo', 'redo' ]
+            })
+            .then(editor => {
+                editors[id] = editor;
+                editor.model.document.on('change:data', () => {
+                    editor.updateSourceElement();
+                });
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+
+    function removeEditor(textarea) {
+        if (!textarea) return;
+        const id = textarea.getAttribute('id');
+        if (id && editors[id]) {
+            editors[id].destroy().then(() => {
+                delete editors[id];
+            });
+        }
+    }
+
+    function initAllEditors() {
+        document.querySelectorAll('.item-description').forEach(textarea => {
+            initEditor(textarea);
+        });
     }
 
     function updateProduct(select) {
@@ -231,8 +274,11 @@
         
         const descTextarea = row.querySelector('.item-description');
         if (descTextarea) {
-            descTextarea.value = description.substring(0, 250);
-            updateCharCount(descTextarea);
+            if (descTextarea.id && editors[descTextarea.id]) {
+                editors[descTextarea.id].setData(description);
+            } else {
+                descTextarea.value = description;
+            }
         }
         
         calculateRow(select);
@@ -297,10 +343,7 @@
                         <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#addProductModal"><i class="fas fa-plus"></i></button>
                     </div>
                     <input type="hidden" name="items[${rowCount}][product_name]" class="product-name">
-                    <textarea name="items[${rowCount}][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" maxlength="250" placeholder="Custom Description (optional)"></textarea>
-                    <div class="char-count-wrapper text-end small text-muted">
-                        <span class="char-count">0</span> / 250
-                    </div>
+                    <textarea name="items[${rowCount}][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" placeholder="Custom Description (optional)"></textarea>
                 </td>
                 <td><input type="number" name="items[${rowCount}][quantity]" class="form-control qty-input text-center" value="1" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
                 <td><input type="number" name="items[${rowCount}][price]" class="form-control price-input text-end" step="0.01" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
@@ -312,12 +355,21 @@
         `;
         $(tbody).append(newRowHtml);
         $(`.select2-new-${rowCount}`).select2({ theme: 'bootstrap-5' });
+        
+        const newTextarea = tbody.querySelector(`textarea[name="items[${rowCount}][item_description]"]`);
+        if (newTextarea) {
+            initEditor(newTextarea);
+        }
+
         rowCount++;
     }
 
     function removeRow(btn) {
         if(document.querySelectorAll('.item-row').length > 1) {
-            $(btn).closest('tr').fadeOut(300, function() {
+            const row = $(btn).closest('tr');
+            const textarea = row.find('.item-description')[0];
+            removeEditor(textarea);
+            row.fadeOut(300, function() {
                 $(this).remove();
                 calculateTotals();
             });
@@ -326,17 +378,19 @@
         }
     }
 
-    $(document).ready(function() {
+    let shouldPrintAfterSave = false;
+    
+    function submitAndPrint() {
+        shouldPrintAfterSave = true;
+        $('#invoiceForm').submit();
+    }
+
+    function initInvoiceForm() {
         calculateTotals();
-        
-        // Character count event delegation
-        $(document).on('input', '.item-description', function() {
-            updateCharCount(this);
-        });
-        
-        // Handle new product (Sale Side) - using specific sale route logic or parameter if needed, but products.store is unified.
-        // We just need to make sure we set correct price.
-        $('#saveProductBtn').click(function() {
+        initAllEditors();
+
+        // Handle new product (Sale Side)
+        $('#saveProductBtn').off('click').on('click', function() {
             const btn = $(this);
             const name = $('#new_product_name').val();
             const price = $('#new_product_price').val();
@@ -364,7 +418,7 @@
                     if(response.success) {
                         $('.product-select').each(function() {
                             const newOption = new Option(response.product.name, response.product.id, false, false);
-                            $(newOption).attr('data-price', response.product.sale_price); // Sale Price for Invoice
+                            $(newOption).attr('data-price', response.product.sale_price);
                             $(newOption).attr('data-description', response.product.product_description || response.product.description || '');
                             $(this).append(newOption);
                         });
@@ -384,7 +438,7 @@
         });
 
          // Handle new Customer
-        $('#saveCustomerBtn').click(function() {
+        $('#saveCustomerBtn').off('click').on('click', function() {
             const btn = $(this);
             const name = $('#new_cust_name').val();
             const phone = $('#new_cust_phone').val();
@@ -422,85 +476,9 @@
                 }
             });
         });
-    });
-</script>
-@endpush
 
-<!-- Add/Edit Customer Modal -->
-<div class="modal fade" id="addCustomerModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add New Customer</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addCustomerForm">
-                    <div class="mb-3">
-                        <label class="form-label">Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="new_cust_name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Phone</label>
-                        <input type="text" class="form-control" id="new_cust_phone">
-                    </div>
-                     <div class="mb-3">
-                        <label class="form-label">Address</label>
-                        <textarea class="form-control" id="new_cust_address"></textarea>
-                    </div>
-                </form>
-            </div>
-             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="saveCustomerBtn">Save Customer</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Add Product Modal -->
-<div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add New Product</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addProductForm">
-                    <div class="mb-3">
-                        <label class="form-label">Product Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="new_product_name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Sale Price</label>
-                        <input type="number" class="form-control" id="new_product_price" step="0.01">
-                    </div>
-                     <div class="alert alert-info small">
-                        * Creates a basic product. For more details go to Inventory > Products.
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="saveProductBtn">Save Product</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<script>
-    let shouldPrintAfterSave = false;
-    
-    function submitAndPrint() {
-        shouldPrintAfterSave = true;
-        $('#invoiceForm').submit();
-    }
-
-    $(document).ready(function() {
         // AJAX Form Submission
-        $('#invoiceForm').on('submit', function(e) {
+        $('#invoiceForm').off('submit').on('submit', function(e) {
             e.preventDefault();
             
             let form = $(this);
@@ -510,6 +488,11 @@
             // Visual feedback - fast and subtle
             btn.prop('disabled', true).html('<i class="fas fa-circle-notch fa-spin"></i> Saving...');
             
+            // Sync all CKEditor instances to their underlying textareas
+            Object.values(editors).forEach(editor => {
+                editor.updateSourceElement();
+            });
+
             $.ajax({
                 url: form.attr('action'),
                 method: form.find('input[name="_method"]').length > 0 ? form.find('input[name="_method"]').val() : 'POST',
@@ -527,17 +510,15 @@
                         if(response.redirect) {
                             window.location.href = response.redirect;
                         } else {
-                            // If create mode, reset. If edit, maybe redirect to index?
-                            // Default behavior for now: if edit, staying on page is fine but usually we go back.
-                            // But for AJAX 'create', we reset.
-                            
-                            // Check if we are in edit mode based on URL or method
-                            // Simplest: check if we have method PUT
                             if(form.find('input[name="_method"]').val() === 'PUT') {
-                                // In edit mode, usually best to redirect or reload
                                 window.location.href = "{{ route('invoices.index') }}";
                             } else {
-                                // Reset the form completely
+                                // Destroy all existing editors before clearing table to prevent leaks
+                                Object.values(editors).forEach(editor => {
+                                    editor.destroy();
+                                });
+                                editors = {};
+
                                 form[0].reset();
                                 $('.select2').val(null).trigger('change');
                                 $('#itemsTable tbody').empty();
@@ -569,6 +550,15 @@
                 }
             });
         });
+    }
+
+    $(document).ready(function() {
+        initInvoiceForm();
+    });
+
+    document.addEventListener('turbo:load', function() {
+        initInvoiceForm();
     });
 </script>
+@endpush
 @endsection

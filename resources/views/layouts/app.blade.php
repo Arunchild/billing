@@ -492,6 +492,17 @@
         </div>
     @endif
 
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     @yield('content')
 </main>
 
@@ -538,9 +549,7 @@
     // Since Turbo fires 'turbo:load' instead of standard events on nav, 
     // we bridge it for simple cases, but specific views should ideally listen to turbo:load.
 </script>
-<script type="module">
-    import hotwiredTurbo from 'https://cdn.skypack.dev/@hotwired/turbo';
-</script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017-esm.min.js"></script>
 
 @stack('scripts')
 </body>

@@ -83,10 +83,7 @@
                                         @endforeach
                                     </select>
                                     <input type="hidden" name="items[{{ $index }}][product_name]" class="product-name" value="{{ $item->product_name }}">
-                                    <textarea name="items[{{ $index }}][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" maxlength="250" placeholder="Custom Description (optional)">{{ $item->item_description }}</textarea>
-                                    <div class="char-count-wrapper text-end small text-muted">
-                                        <span class="char-count">{{ strlen($item->item_description ?? '') }}</span> / 250
-                                    </div>
+                                    <textarea name="items[{{ $index }}][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" placeholder="Custom Description (optional)">{{ $item->item_description }}</textarea>
                                 </td>
                                 <td>
                                     <input type="number" name="items[{{ $index }}][quantity]" class="form-control qty-input text-center" value="{{ $item->quantity }}" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
@@ -118,10 +115,7 @@
                                         @endforeach
                                     </select>
                                     <input type="hidden" name="items[0][product_name]" class="product-name">
-                                    <textarea name="items[0][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" maxlength="250" placeholder="Custom Description (optional)"></textarea>
-                                    <div class="char-count-wrapper text-end small text-muted">
-                                        <span class="char-count">0</span> / 250
-                                    </div>
+                                    <textarea name="items[0][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" placeholder="Custom Description (optional)"></textarea>
                                 </td>
                                 <td>
                                     <input type="number" name="items[0][quantity]" class="form-control qty-input text-center" value="1" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
@@ -215,12 +209,62 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+<style>
+    .ck-editor__editable_inline {
+        min-height: 80px !important;
+    }
+</style>
 <script>
-    function updateCharCount(textarea) {
-        const countSpan = $(textarea).siblings('.char-count-wrapper').find('.char-count');
-        if (countSpan.length) {
-            countSpan.text(textarea.value.length);
+    // CKEditor Instances Map
+    let editors = {};
+
+    function initEditor(textarea) {
+        if (!textarea) return;
+        const id = textarea.getAttribute('id') || 'editor-' + Math.random().toString(36).substring(2, 9);
+        textarea.setAttribute('id', id);
+        
+        // Destroy if already exists to prevent duplication
+        if (editors[id]) {
+            editors[id].destroy().then(() => {
+                delete editors[id];
+                createEditor(textarea, id);
+            });
+        } else {
+            createEditor(textarea, id);
         }
+    }
+
+    function createEditor(textarea, id) {
+        ClassicEditor
+            .create(textarea, {
+                toolbar: [ 'bold', 'italic', '|', 'bulletedList', 'numberedList', '|', 'undo', 'redo' ]
+            })
+            .then(editor => {
+                editors[id] = editor;
+                editor.model.document.on('change:data', () => {
+                    editor.updateSourceElement();
+                });
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+
+    function removeEditor(textarea) {
+        if (!textarea) return;
+        const id = textarea.getAttribute('id');
+        if (id && editors[id]) {
+            editors[id].destroy().then(() => {
+                delete editors[id];
+            });
+        }
+    }
+
+    function initAllEditors() {
+        document.querySelectorAll('.item-description').forEach(textarea => {
+            initEditor(textarea);
+        });
     }
 
     function updateProduct(select) {
@@ -235,8 +279,11 @@
         
         const descTextarea = row.querySelector('.item-description');
         if (descTextarea) {
-            descTextarea.value = description.substring(0, 250);
-            updateCharCount(descTextarea);
+            if (descTextarea.id && editors[descTextarea.id]) {
+                editors[descTextarea.id].setData(description);
+            } else {
+                descTextarea.value = description;
+            }
         }
         
         calculateRow(select);
@@ -303,10 +350,7 @@
                         @endforeach
                     </select>
                     <input type="hidden" name="items[${rowCount}][product_name]" class="product-name">
-                    <textarea name="items[${rowCount}][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" maxlength="250" placeholder="Custom Description (optional)"></textarea>
-                    <div class="char-count-wrapper text-end small text-muted">
-                        <span class="char-count">0</span> / 250
-                    </div>
+                    <textarea name="items[${rowCount}][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" placeholder="Custom Description (optional)"></textarea>
                 </td>
                 <td>
                     <input type="number" name="items[${rowCount}][quantity]" class="form-control qty-input text-center" value="1" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
@@ -330,17 +374,24 @@
         `;
         
         $(tbody).append(newRowHtml);
-        
         $(`.select2-new-${rowCount}`).select2({
             theme: 'bootstrap-5'
         });
+        
+        const newTextarea = tbody.querySelector(`textarea[name="items[${rowCount}][item_description]"]`);
+        if (newTextarea) {
+            initEditor(newTextarea);
+        }
         
         rowCount++;
     }
 
     function removeRow(btn) {
         if(document.querySelectorAll('.item-row').length > 1) {
-            $(btn).closest('tr').fadeOut(300, function() {
+            const row = $(btn).closest('tr');
+            const textarea = row.find('.item-description')[0];
+            removeEditor(textarea);
+            row.fadeOut(300, function() {
                 $(this).remove();
                 calculateTotals();
             });
@@ -352,6 +403,9 @@
     // Function to initialize handlers, safe to call multiple times or on Turbo load
     function initQuotationForm() {
         console.log('Initializing quotation form script');
+        calculateTotals();
+        initAllEditors();
+
         let isSaveAndPrint = false;
 
         // Unbind previous handlers to avoid duplicates
@@ -375,6 +429,11 @@
             $('#saveBtn, #saveAndPrintBtn').prop('disabled', true);
             btn.html('<i class="fas fa-circle-notch fa-spin"></i> Saving...');
             
+            // Sync all CKEditor instances to their underlying textareas
+            Object.values(editors).forEach(editor => {
+                editor.updateSourceElement();
+            });
+
             $.ajax({
                 url: form.attr('action'),
                 method: 'POST',
@@ -382,9 +441,17 @@
                 success: function(response) {
                     if(response.success) {
                         toastr.success(response.message);
+                        
+                        // Destroy all existing editors before resetting form to prevent leaks
+                        Object.values(editors).forEach(editor => {
+                            editor.destroy();
+                        });
+                        editors = {};
+
                         form[0].reset();
                         $('.select2').val(null).trigger('change');
                         $('#itemsTable tbody').empty();
+                        rowCount = 1;
                         addRow(); 
                         $('input[name="quotation_number"]').val(response.next_quotation_number);
                         $('input[name="quotation_date"]').val(new Date().toISOString().split('T')[0]);
@@ -420,15 +487,9 @@
 
     $(document).ready(function() {
         initQuotationForm();
-        
-        // Character count event delegation
-        $(document).on('input', '.item-description', function() {
-            updateCharCount(this);
-        });
 
         // Initial calculation if editing
         @if(isset($quotation))
-            calculateTotals();
             // Set JavaScript row count past existing rows
             rowCount = {{ count($quotation->items ?? []) }};
         @endif

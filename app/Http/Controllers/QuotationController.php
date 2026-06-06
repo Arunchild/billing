@@ -240,7 +240,7 @@ class QuotationController extends Controller
     {
         $original = Quotation::with('items')->findOrFail($id);
         
-        $nextId = Quotation::max('id') + 1;
+        $nextId = Quotation::withTrashed()->max('id') + 1;
         $quotationNumber = 'QT-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
         
         DB::transaction(function () use ($original, $quotationNumber) {

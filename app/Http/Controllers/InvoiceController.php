@@ -70,7 +70,7 @@ class InvoiceController extends Controller
     {
         $customers = Customer::all();
         $products = Product::all();
-        $nextId = Invoice::max('id') + 1;
+        $nextId = Invoice::withTrashed()->max('id') + 1;
         $invoiceNumber = 'INV-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
         
         return view('invoices.create', compact('customers', 'products', 'invoiceNumber'));
@@ -124,7 +124,7 @@ class InvoiceController extends Controller
         });
 
         if ($request->wantsJson() || $request->ajax()) {
-            $nextId = Invoice::max('id') + 1;
+            $nextId = Invoice::withTrashed()->max('id') + 1;
             $nextInvoiceNumber = 'INV-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
 
             return response()->json([
@@ -255,7 +255,7 @@ class InvoiceController extends Controller
     {
         $original = Invoice::with('items')->findOrFail($id);
         
-        $nextId = Invoice::max('id') + 1;
+        $nextId = Invoice::withTrashed()->max('id') + 1;
         $invoiceNumber = 'INV-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
         
         DB::transaction(function () use ($original, $invoiceNumber) {

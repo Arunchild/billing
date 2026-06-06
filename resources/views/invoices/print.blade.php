@@ -160,7 +160,7 @@
                     <td>
                         {{ $item->product_name }}
                         @if($item->item_description)
-                            <br><small>{{ $item->item_description }}</small>
+                            <br><small>{!! $item->item_description !!}</small>
                         @endif
                     </td>
                     <td class="text-center">{{ $item->item_code ?? '-' }}</td>

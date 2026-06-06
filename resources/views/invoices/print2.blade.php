@@ -250,7 +250,7 @@
                     <td class="text-left">
                         {{ $item->product_name }} 
                         @if($item->item_description)
-                            - {{ $item->item_description }}
+                            <br><small style="display: block; font-size: 10px; color: #555; margin-top: 2px;">{!! $item->item_description !!}</small>
                         @endif
                     </td>
                     <td>{{ $item->product->hsn_sac_code ?? '-' }}</td>
