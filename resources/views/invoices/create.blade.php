@@ -63,12 +63,13 @@
                 <table class="table table-bordered table-hover mb-0" id="itemsTable">
                     <thead class="table-light">
                         <tr>
-                            <th style="width: 35%;">Product / Service</th>
-                            <th style="width: 10%;">Qty</th>
-                            <th style="width: 15%;">Price (₹)</th>
+                            <th style="width: 30%;">Product / Service</th>
+                            <th style="width: 8%;">Qty</th>
+                            <th style="width: 12%;">Price (₹)</th>
                             <th style="width: 10%;">GST %</th>
-                            <th style="width: 15%;">GST Amt</th>
-                            <th style="width: 15%;">Total (₹)</th>
+                            <th style="width: 12%;">Tax Type</th>
+                            <th style="width: 11%;">GST Amt</th>
+                            <th style="width: 12%;">Total (₹)</th>
                             <th style="width: 5%;"></th>
                         </tr>
                     </thead>
@@ -90,10 +91,22 @@
                                     <input type="number" name="items[{{$index}}][quantity]" class="form-control qty-input text-center" value="{{ $item->quantity }}" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
                                 </td>
                                 <td>
-                                    <input type="number" name="items[{{$index}}][price]" class="form-control price-input text-end" step="0.01" value="{{ $item->price }}" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
+                                    <input type="number" name="items[{{$index}}][price]" class="form-control price-input text-end" step="0.01" value="{{ $item->price }}" data-entered-price="{{ $item->price }}" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
                                 </td>
                                 <td>
-                                    <input type="number" name="items[{{$index}}][tax_rate]" class="form-control tax-rate-input text-center" step="0.01" value="{{ $item->tax_rate }}" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
+                                    <select name="items[{{$index}}][tax_rate]" class="form-select tax-rate-input text-center" onchange="calculateRow(this)">
+                                        <option value="0" {{ (int)$item->tax_rate == 0 ? 'selected' : '' }}>0%</option>
+                                        <option value="5" {{ (int)$item->tax_rate == 5 ? 'selected' : '' }}>5%</option>
+                                        <option value="12" {{ (int)$item->tax_rate == 12 ? 'selected' : '' }}>12%</option>
+                                        <option value="18" {{ (int)$item->tax_rate == 18 ? 'selected' : '' }}>18%</option>
+                                        <option value="28" {{ (int)$item->tax_rate == 28 ? 'selected' : '' }}>28%</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select name="items[{{$index}}][tax_type]" class="form-select tax-type-input text-center" onchange="calculateRow(this)">
+                                        <option value="exclusive" selected>Exclusive</option>
+                                        <option value="inclusive">Inclusive</option>
+                                    </select>
                                 </td>
                                 <td>
                                     <input type="number" name="items[{{$index}}][tax_amount]" class="form-control tax-amount-input text-end bg-light" step="0.01" value="{{ $item->tax_amount }}" readonly>
@@ -122,10 +135,22 @@
                                     <input type="number" name="items[0][quantity]" class="form-control qty-input text-center" value="1" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
                                 </td>
                                 <td>
-                                    <input type="number" name="items[0][price]" class="form-control price-input text-end" step="0.01" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
+                                    <input type="number" name="items[0][price]" class="form-control price-input text-end" step="0.01" data-entered-price="" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
                                 </td>
                                 <td>
-                                    <input type="number" name="items[0][tax_rate]" class="form-control tax-rate-input text-center" step="0.01" value="0" onchange="calculateRow(this)" onkeyup="calculateRow(this)">
+                                    <select name="items[0][tax_rate]" class="form-select tax-rate-input text-center" onchange="calculateRow(this)">
+                                        <option value="0" selected>0%</option>
+                                        <option value="5">5%</option>
+                                        <option value="12">12%</option>
+                                        <option value="18">18%</option>
+                                        <option value="28">28%</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select name="items[0][tax_type]" class="form-select tax-type-input text-center" onchange="calculateRow(this)">
+                                        <option value="exclusive" selected>Exclusive</option>
+                                        <option value="inclusive">Inclusive</option>
+                                    </select>
                                 </td>
                                 <td>
                                     <input type="number" name="items[0][tax_amount]" class="form-control tax-amount-input text-end bg-light" step="0.01" readonly>
@@ -265,11 +290,13 @@
     function updateProduct(select) {
         const row = select.closest('tr');
         const selectedOption = select.options[select.selectedIndex];
-        const price = selectedOption.getAttribute('data-price');
+        const price = selectedOption.getAttribute('data-price') || 0;
         const name = selectedOption.text;
         const description = selectedOption.getAttribute('data-description') || '';
         
-        row.querySelector('.price-input').value = price || 0;
+        const priceInput = row.querySelector('.price-input');
+        priceInput.value = price;
+        priceInput.setAttribute('data-entered-price', price);
         row.querySelector('.product-name').value = name;
         
         const descTextarea = row.querySelector('.item-description');
@@ -287,15 +314,41 @@
     function calculateRow(element) {
         const row = element.closest('tr');
         const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
-        const price = parseFloat(row.querySelector('.price-input').value) || 0;
-        const taxRate = parseFloat(row.querySelector('.tax-rate-input').value) || 0;
+        const priceInput = row.querySelector('.price-input');
         
-        const baseAmount = qty * price;
-        const taxAmount = baseAmount * (taxRate / 100);
-        const total = baseAmount + taxAmount;
+        // Update data-entered-price when user is actively editing the field
+        if (document.activeElement === priceInput) {
+            priceInput.setAttribute('data-entered-price', priceInput.value);
+        }
+        
+        const enteredPrice = parseFloat(priceInput.getAttribute('data-entered-price')) || parseFloat(priceInput.value) || 0;
+        const taxRate = parseFloat(row.querySelector('.tax-rate-input').value) || 0;
+        const taxType = row.querySelector('.tax-type-input').value || 'exclusive';
+        
+        let taxablePrice = enteredPrice;
+        let taxAmount = 0;
+        let total = 0;
+        
+        if (taxType === 'inclusive') {
+            taxablePrice = enteredPrice / (1 + taxRate / 100);
+            const baseAmount = qty * taxablePrice;
+            const totalAmount = qty * enteredPrice;
+            taxAmount = totalAmount - baseAmount;
+            total = totalAmount;
+        } else {
+            taxablePrice = enteredPrice;
+            const baseAmount = qty * taxablePrice;
+            taxAmount = baseAmount * (taxRate / 100);
+            total = baseAmount + taxAmount;
+        }
         
         row.querySelector('.tax-amount-input').value = taxAmount.toFixed(2);
         row.querySelector('.total-input').value = total.toFixed(2);
+        
+        // Update input display only if not active editing
+        if (document.activeElement !== priceInput) {
+            priceInput.value = taxablePrice.toFixed(2);
+        }
         
         calculateTotals();
     }
@@ -306,10 +359,18 @@
         
         document.querySelectorAll('.item-row').forEach(row => {
             const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
-            const price = parseFloat(row.querySelector('.price-input').value) || 0;
-            const taxAmt = parseFloat(row.querySelector('.tax-amount-input').value) || 0;
+            const priceInput = row.querySelector('.price-input');
+            const enteredPrice = parseFloat(priceInput.getAttribute('data-entered-price')) || parseFloat(priceInput.value) || 0;
+            const taxRate = parseFloat(row.querySelector('.tax-rate-input').value) || 0;
+            const taxType = row.querySelector('.tax-type-input').value || 'exclusive';
             
-            subTotal += (qty * price);
+            let taxablePrice = enteredPrice;
+            if (taxType === 'inclusive') {
+                taxablePrice = enteredPrice / (1 + taxRate / 100);
+            }
+            
+            subTotal += (qty * taxablePrice);
+            const taxAmt = parseFloat(row.querySelector('.tax-amount-input').value) || 0;
             taxTotal += taxAmt;
         });
 
@@ -325,6 +386,25 @@
         document.getElementById('grandTotalDisplay').textContent = grandTotal.toFixed(2);
         document.getElementById('grandTotalInput').value = grandTotal.toFixed(2);
     }
+    
+    // Setup Price Input Focus/Blur Handlers using event delegation
+    $(document).on('focus', '.price-input', function() {
+        const row = this.closest('tr');
+        const priceInput = row.querySelector('.price-input');
+        const enteredPrice = parseFloat(priceInput.getAttribute('data-entered-price')) || parseFloat(priceInput.value) || 0;
+        const taxType = row.querySelector('.tax-type-input').value || 'exclusive';
+        
+        if (taxType === 'inclusive' && enteredPrice > 0) {
+            priceInput.value = enteredPrice;
+        }
+    });
+
+    $(document).on('blur', '.price-input', function() {
+        const row = this.closest('tr');
+        const priceInput = row.querySelector('.price-input');
+        priceInput.setAttribute('data-entered-price', priceInput.value);
+        calculateRow(priceInput);
+    });
     
     let rowCount = {{ isset($invoice) ? $invoice->items->count() : 1 }};
 
@@ -346,8 +426,22 @@
                     <textarea name="items[${rowCount}][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" placeholder="Custom Description (optional)"></textarea>
                 </td>
                 <td><input type="number" name="items[${rowCount}][quantity]" class="form-control qty-input text-center" value="1" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
-                <td><input type="number" name="items[${rowCount}][price]" class="form-control price-input text-end" step="0.01" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
-                <td><input type="number" name="items[${rowCount}][tax_rate]" class="form-control tax-rate-input text-center" step="0.01" value="0" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
+                <td><input type="number" name="items[${rowCount}][price]" class="form-control price-input text-end" step="0.01" data-entered-price="" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
+                <td>
+                    <select name="items[${rowCount}][tax_rate]" class="form-select tax-rate-input text-center" onchange="calculateRow(this)">
+                        <option value="0" selected>0%</option>
+                        <option value="5">5%</option>
+                        <option value="12">12%</option>
+                        <option value="18">18%</option>
+                        <option value="28">28%</option>
+                    </select>
+                </td>
+                <td>
+                    <select name="items[${rowCount}][tax_type]" class="form-select tax-type-input text-center" onchange="calculateRow(this)">
+                        <option value="exclusive" selected>Exclusive</option>
+                        <option value="inclusive">Inclusive</option>
+                    </select>
+                </td>
                 <td><input type="number" name="items[${rowCount}][tax_amount]" class="form-control tax-amount-input text-end bg-light" step="0.01" readonly></td>
                 <td><input type="number" name="items[${rowCount}][total]" class="form-control total-input text-end fw-bold bg-light" step="0.01" readonly></td>
                 <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm rounded-circle" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
@@ -485,6 +579,20 @@
             let btn = form.find('button[type="submit"]');
             let originalText = btn.html();
             
+            // Ensure all price inputs are set to their calculated taxable (exclusive) prices before submit
+            document.querySelectorAll('.item-row').forEach(row => {
+                const priceInput = row.querySelector('.price-input');
+                const enteredPrice = parseFloat(priceInput.getAttribute('data-entered-price')) || parseFloat(priceInput.value) || 0;
+                const taxRate = parseFloat(row.querySelector('.tax-rate-input').value) || 0;
+                const taxType = row.querySelector('.tax-type-input').value || 'exclusive';
+                
+                let taxablePrice = enteredPrice;
+                if (taxType === 'inclusive') {
+                    taxablePrice = enteredPrice / (1 + taxRate / 100);
+                }
+                priceInput.value = taxablePrice.toFixed(2);
+            });
+
             // Visual feedback - fast and subtle
             btn.prop('disabled', true).html('<i class="fas fa-circle-notch fa-spin"></i> Saving...');
             
