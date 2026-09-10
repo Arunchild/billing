@@ -14,7 +14,7 @@
 </div>
 
 <div class="row animate__animated animate__fadeInUp">
-    <div class="col-md-8 mx-auto">
+    <div class="col-lg-10 mx-auto">
         <div class="card">
             <div class="card-body">
                 <form action="{{ route('customers.update', $customer->id) }}" method="POST">
@@ -74,6 +74,9 @@
                         <div class="col-md-6">
                             <label class="form-label">GST Number</label>
                             <input type="text" name="gst_number" class="form-control" value="{{ $customer->gst_number }}">
+                        </div>
+                        <div class="col-12">
+                            @include('customers._remarks', ['remarks' => $customer->remarks])
                         </div>
                         <div class="col-12 text-end">
                             <button type="submit" class="btn btn-primary px-4">

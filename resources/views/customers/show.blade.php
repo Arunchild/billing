@@ -98,6 +98,44 @@
     </div>
 </div>
 
+<!-- Remarks -->
+<div class="card mb-3 animate__animated animate__fadeIn">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+        <h6 class="mb-0 fw-bold"><i class="fas fa-comment-medical me-2 text-primary"></i>Remarks <span class="badge bg-secondary ms-1">{{ $remarks->count() }}</span></h6>
+        <a href="{{ route('customers.edit', $customer->id) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-plus"></i> Add / Edit Remarks</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0 doc-table">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 120px;">Date</th>
+                        <th style="width: 40%;">Purpose</th>
+                        <th>Solution</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($remarks as $remark)
+                    <tr>
+                        <td class="text-nowrap">{{ $remark->remark_date ? $remark->remark_date->format('d-M-Y') : '-' }}</td>
+                        <td style="white-space: pre-line;">{{ $remark->purpose ?: '-' }}</td>
+                        <td style="white-space: pre-line;">{{ $remark->solution ?: '-' }}</td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-4">
+                            <i class="fas fa-comment-medical fa-2x d-block mb-2 opacity-25"></i>
+                            No remarks recorded for this customer.
+                            <a href="{{ route('customers.edit', $customer->id) }}" class="d-block mt-2">Add the first one</a>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <!-- Documents -->
 <div class="card animate__animated animate__fadeInUp">
     <div class="card-header bg-white pb-0">
