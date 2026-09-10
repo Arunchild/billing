@@ -15,6 +15,46 @@ class Customer extends Model
         'date_of_birth', 'pincode'
     ];
 
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class)->latest('invoice_date');
+    }
+
+    public function quotations()
+    {
+        return $this->hasMany(Quotation::class)->latest('quotation_date');
+    }
+
+    public function receipts()
+    {
+        return $this->hasMany(Receipt::class)->latest('receipt_date');
+    }
+
+    public function remarks()
+    {
+        return $this->hasMany(CustomerRemark::class)->orderByDesc('remark_date')->orderByDesc('id');
+    }
+
+    public function saleReturns()
+    {
+        return $this->hasMany(SaleReturn::class)->latest('return_date');
+    }
+
+    public function getTotalInvoicedAttribute()
+    {
+        return (float) $this->invoices()->sum('total');
+    }
+
+    public function getTotalReceivedAttribute()
+    {
+        return (float) $this->receipts()->sum('amount');
+    }
+
+    public function getBalanceDueAttribute()
+    {
+        return round($this->total_invoiced - $this->total_received, 2);
+    }
+
     public static function generateRegNo()
     {
         $lastCustomer = self::orderBy('id', 'desc')->first();

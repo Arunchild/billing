@@ -78,7 +78,13 @@
                         <td>{{ $saleReturns->firstItem() + $index }}</td>
                         <td class="fw-bold text-primary">{{ $return->return_number }}</td>
                         <td>{{ \Carbon\Carbon::parse($return->return_date)->format('d-M-Y') }}</td>
-                        <td class="fw-bold">{{ $return->customer ? $return->customer->name : 'N/A' }}</td>
+                        <td class="fw-bold">
+                            @if($return->customer)
+                                <a href="{{ route('customers.show', $return->customer_id) }}" class="text-decoration-none" title="View customer history">{{ $return->customer->name }}</a>
+                            @else
+                                N/A
+                            @endif
+                        </td>
                         <td class="fw-bold">{{ number_format($return->total, 2) }}</td>
                         <td>
                              <span class="badge {{ $return->status == 'approved' ? 'bg-success' : 'bg-warning text-dark' }}">

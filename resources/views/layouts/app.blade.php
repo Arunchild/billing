@@ -257,13 +257,18 @@
         <li><a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}"><i class="fas fa-th-large"></i> Dashboard</a></li>
         @endif
         
+        <!-- Customer Menu -->
+        @if(auth()->user()->hasPermission('customer'))
+        <li><a href="{{ route('customers.index') }}" class="{{ request()->routeIs('customers.*') ? 'active' : '' }}"><i class="fas fa-users"></i> Customer</a></li>
+        @endif
+
         <!-- Sale Menu -->
-        @if(auth()->user()->hasPermission('invoice') || auth()->user()->hasPermission('sale_return') || auth()->user()->hasPermission('quotation'))
+        @if(auth()->user()->hasPermission('invoice') || auth()->user()->hasPermission('sale_return') || auth()->user()->hasPermission('quotation') || auth()->user()->hasPermission('receipt'))
         <li>
-            <a href="#saleSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('invoices.*') || request()->routeIs('sale_returns.*') || request()->routeIs('quotations.*') ? 'active' : '' }}">
+            <a href="#saleSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('invoices.*') || request()->routeIs('sale_returns.*') || request()->routeIs('quotations.*') || request()->routeIs('receipts.*') ? 'active' : '' }}">
                 <i class="fas fa-file-invoice"></i> Sale
             </a>
-            <ul class="collapse submenu {{ request()->routeIs('invoices.*') || request()->routeIs('sale_returns.*') || request()->routeIs('quotations.*') ? 'show' : '' }}" id="saleSubmenu">
+            <ul class="collapse submenu {{ request()->routeIs('invoices.*') || request()->routeIs('sale_returns.*') || request()->routeIs('quotations.*') || request()->routeIs('receipts.*') ? 'show' : '' }}" id="saleSubmenu">
                 
                 <!-- Invoice Submenu -->
                 @if(auth()->user()->hasPermission('invoice'))
@@ -274,6 +279,19 @@
                     <ul class="collapse submenu {{ request()->routeIs('invoices.*') ? 'show' : '' }}" id="invoiceSubmenu">
                         <li><a href="{{ route('invoices.create') }}" class="{{ request()->routeIs('invoices.create') ? 'active' : '' }}">New Invoice</a></li>
                         <li><a href="{{ route('invoices.index') }}" class="{{ request()->routeIs('invoices.index') ? 'active' : '' }}">Search & Manage</a></li>
+                    </ul>
+                </li>
+                @endif
+
+                <!-- Receipt Submenu -->
+                @if(auth()->user()->hasPermission('receipt'))
+                <li>
+                    <a href="#receiptSubmenu" data-bs-toggle="collapse" class="{{ request()->routeIs('receipts.*') ? 'text-white' : '' }}">
+                        <i class="fas fa-receipt"></i> Receipt
+                    </a>
+                    <ul class="collapse submenu {{ request()->routeIs('receipts.*') ? 'show' : '' }}" id="receiptSubmenu">
+                        <li><a href="{{ route('receipts.create') }}" class="{{ request()->routeIs('receipts.create') ? 'active' : '' }}">New Receipt</a></li>
+                        <li><a href="{{ route('receipts.index') }}" class="{{ request()->routeIs('receipts.index') ? 'active' : '' }}">Search & Manage</a></li>
                     </ul>
                 </li>
                 @endif
@@ -415,10 +433,6 @@
         <li><a href="{{ route('expenses.index') }}" class="{{ request()->routeIs('expenses.*') ? 'active' : '' }}"><i class="fas fa-wallet"></i> Expense</a></li>
         @endif
 
-        @if(auth()->user()->hasPermission('customer'))
-        <li><a href="{{ route('customers.index') }}" class="{{ request()->routeIs('customers.*') ? 'active' : '' }}"><i class="fas fa-users"></i> Customer</a></li>
-        @endif
-
         @if(auth()->user()->hasPermission('reports'))
         <li><a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}"><i class="fas fa-chart-bar"></i> Reports</a></li>
         @endif
@@ -543,6 +557,37 @@
 
         // Fade in main content if desired
         $('.main-content').addClass('animate__animated animate__fadeIn');
+
+        // Keep modals directly under <body> so no styled ancestor can stack
+        // them underneath the backdrop.
+        $('.modal').each(function () {
+            if (this.parentNode !== document.body) {
+                document.body.appendChild(this);
+            }
+        });
+    });
+
+    // Animate.css uses animation-fill-mode: both, so a finished animation still
+    // holds its end state and keeps the element in its own stacking context.
+    // A Bootstrap modal inside such an element (e.g. .main-content) then paints
+    // *below* the body level .modal-backdrop: the dialog looks dimmed out and
+    // the backdrop swallows every click. Drop the classes once they have played.
+    document.addEventListener('animationend', function (e) {
+        var el = e.target;
+        if (el.classList && el.classList.contains('animate__animated')) {
+            Array.prototype.slice.call(el.classList).forEach(function (c) {
+                if (c.indexOf('animate__') === 0) {
+                    el.classList.remove(c);
+                }
+            });
+        }
+    });
+
+    // Same protection for modals opened before the intro animation finished.
+    document.addEventListener('show.bs.modal', function (e) {
+        if (e.target.parentNode !== document.body) {
+            document.body.appendChild(e.target);
+        }
     });
     
     // Legacy support for scripts doing $(document).ready()

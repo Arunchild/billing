@@ -13,7 +13,7 @@
     </div>
 </div>
 
-<form action="{{ isset($invoice) ? route('invoices.update', $invoice->id) : route('invoices.store') }}" method="POST" id="invoiceForm" class="animate__animated animate__fadeInUp">
+<form action="{{ isset($invoice) ? route('invoices.update', $invoice->id) : route('invoices.store') }}" method="POST" id="invoiceForm" class="animate__animated animate__fadeInUp" enctype="multipart/form-data">
     @csrf
     @if(isset($invoice))
         @method('PUT')
@@ -48,6 +48,17 @@
                 <div class="col-md-3">
                     <label class="form-label">Due Date</label>
                     <input type="date" name="due_date" class="form-control" value="{{ isset($invoice) ? $invoice->due_date : '' }}">
+                </div>
+                <div class="col-md-12 mt-3">
+                    <label class="form-label">Partner Logo</label>
+                    <div class="d-flex align-items-center gap-3">
+                        <input type="file" name="partner_logo" class="form-control" accept="image/*">
+                        @if(isset($invoice) && $invoice->partner_logo)
+                            <div class="position-relative">
+                                <img src="{{ asset($invoice->partner_logo) }}" alt="Current Logo" style="max-height: 50px; border: 1px solid #ccc; padding: 2px; border-radius: 4px;">
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
@@ -601,10 +612,14 @@
                 editor.updateSourceElement();
             });
 
+            let formData = new FormData(this);
+
             $.ajax({
                 url: form.attr('action'),
                 method: form.find('input[name="_method"]').length > 0 ? form.find('input[name="_method"]').val() : 'POST',
-                data: form.serialize(),
+                data: formData,
+                processData: false,
+                contentType: false,
                 success: function(response) {
                     if(response.success) {
                         toastr.success(response.message);

@@ -23,6 +23,10 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::post('invoices/bulk-mark-paid', [InvoiceController::class, 'bulkMarkPaid'])->name('invoices.bulk_mark_paid');
     Route::resource('invoices', InvoiceController::class);
 
+    Route::get('receipts/{id}/print', [\App\Http\Controllers\ReceiptController::class, 'print'])->name('receipts.print');
+    Route::get('receipts/customer/{customer}/invoices', [\App\Http\Controllers\ReceiptController::class, 'customerInvoices'])->name('receipts.customer_invoices');
+    Route::resource('receipts', \App\Http\Controllers\ReceiptController::class);
+
     Route::get('sale_returns/{id}/print', [\App\Http\Controllers\SaleReturnController::class, 'print'])->name('sale_returns.print');
     Route::resource('sale_returns', \App\Http\Controllers\SaleReturnController::class);
 

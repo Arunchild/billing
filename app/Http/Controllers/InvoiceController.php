@@ -91,11 +91,20 @@ class InvoiceController extends Controller
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:1',
             'items.*.price' => 'required|numeric|min:0',
+            'partner_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
+
+        $logoPath = null;
+        if ($request->hasFile('partner_logo')) {
+            $file = $request->file('partner_logo');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/logos'), $filename);
+            $logoPath = 'uploads/logos/' . $filename;
+        }
 
         $invoice = null;
 
-        DB::transaction(function () use ($validated, $request, &$invoice) {
+        DB::transaction(function () use ($validated, $request, $logoPath, &$invoice) {
             $invoice = Invoice::create([
                 'customer_id' => $validated['customer_id'],
                 'invoice_number' => $validated['invoice_number'],
@@ -107,6 +116,7 @@ class InvoiceController extends Controller
                 'total' => $validated['total'],
                 'status' => 'paid',
                 'type' => 'gst', // Assuming GST based on screenshot
+                'partner_logo' => $logoPath,
             ]);
 
             foreach ($request->items as $item) {
@@ -161,9 +171,21 @@ class InvoiceController extends Controller
             'customer_id' => 'required|exists:customers,id',
             'invoice_date' => 'required|date',
             'items' => 'required|array|min:1',
+            'partner_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        DB::transaction(function () use ($validated, $request, $invoice) {
+        $logoPath = $invoice->partner_logo;
+        if ($request->hasFile('partner_logo')) {
+            if ($logoPath && file_exists(public_path($logoPath))) {
+                @unlink(public_path($logoPath));
+            }
+            $file = $request->file('partner_logo');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/logos'), $filename);
+            $logoPath = 'uploads/logos/' . $filename;
+        }
+
+        DB::transaction(function () use ($validated, $request, $invoice, $logoPath) {
             $invoice->update([
                 'customer_id' => $validated['customer_id'],
                 'invoice_date' => $validated['invoice_date'],
@@ -172,6 +194,7 @@ class InvoiceController extends Controller
                 'tax_total' => $request->tax_total,
                 'discount' => $request->discount ?? 0,
                 'total' => $request->total,
+                'partner_logo' => $logoPath,
             ]);
 
             // Sync items (delete all and recreate is simplest for this scope)

@@ -219,6 +219,11 @@
             </div>
             
             <div class="right-col">
+                @if($invoice->partner_logo)
+                    <div style="text-align: right; margin-bottom: 10px; padding-right: 15px;">
+                        <img src="{{ asset($invoice->partner_logo) }}" alt="Partner Logo" style="max-height: 50px; max-width: 150px; object-fit: contain;">
+                    </div>
+                @endif
                 <div class="invoice-meta-item">
                     INVOICE NO : &nbsp;&nbsp; {{ $invoice->invoice_number }}
                 </div>

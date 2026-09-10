@@ -28,6 +28,7 @@ class Staff extends Model
         return [
             'dashboard' => 'Dashboard',
             'invoice' => 'Invoice',
+            'receipt' => 'Receipt',
             'sale_return' => 'Sale Return',
             'quotation' => 'Quotation',
             'purchase_bill' => 'Purchase Bill',

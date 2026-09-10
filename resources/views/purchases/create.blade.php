@@ -63,12 +63,13 @@
                 <table class="table table-bordered table-hover mb-0" id="itemsTable">
                     <thead class="table-light">
                         <tr>
-                            <th style="width: 35%;">Product</th>
-                            <th style="width: 10%;">Qty</th>
-                            <th style="width: 15%;">Unit Price</th>
+                            <th style="width: 30%;">Product</th>
+                            <th style="width: 8%;">Qty</th>
+                            <th style="width: 12%;">Unit Price</th>
                             <th style="width: 10%;">Tax %</th>
-                            <th style="width: 15%;">Tax Amt</th>
-                            <th style="width: 15%;">Total</th>
+                            <th style="width: 12%;">Tax Type</th>
+                            <th style="width: 11%;">Tax Amt</th>
+                            <th style="width: 12%;">Total</th>
                             <th style="width: 5%;"></th>
                         </tr>
                     </thead>
@@ -80,14 +81,29 @@
                                     <select name="items[{{ $index }}][product_id]" class="form-select product-select select2" onchange="updateProduct(this)" required>
                                         <option value="">Select Product</option>
                                         @foreach($products as $product)
-                                            <option value="{{ $product->id }}" data-price="{{ $product->purchase_price ?? 0 }}" {{ $item->product_id == $product->id ? 'selected' : '' }}>{{ $product->name }}</option>
+                                            <option value="{{ $product->id }}" data-price="{{ $product->purchase_price ?? 0 }}" data-description="{{ $product->product_description ?? $product->description ?? '' }}" {{ $item->product_id == $product->id ? 'selected' : '' }}>{{ $product->name }}</option>
                                         @endforeach
                                     </select>
                                     <input type="hidden" name="items[{{ $index }}][product_name]" class="product-name" value="{{ $item->product_name }}">
+                                    <textarea name="items[{{ $index }}][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" placeholder="Custom Description (optional)">{{ $item->item_description }}</textarea>
                                 </td>
                                 <td><input type="number" name="items[{{ $index }}][quantity]" class="form-control qty-input text-center" value="{{ $item->quantity }}" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
-                                <td><input type="number" name="items[{{ $index }}][price]" class="form-control price-input text-end" step="0.01" value="{{ $item->price }}" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
-                                <td><input type="number" name="items[{{ $index }}][tax_rate]" class="form-control tax-rate-input text-center" step="0.01" value="{{ $item->tax_rate }}" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
+                                <td><input type="number" name="items[{{ $index }}][price]" class="form-control price-input text-end" step="0.01" value="{{ $item->price }}" data-entered-price="{{ $item->price }}" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
+                                <td>
+                                    <select name="items[{{ $index }}][tax_rate]" class="form-select tax-rate-input text-center" onchange="calculateRow(this)">
+                                        <option value="0" {{ (int)$item->tax_rate == 0 ? 'selected' : '' }}>0%</option>
+                                        <option value="5" {{ (int)$item->tax_rate == 5 ? 'selected' : '' }}>5%</option>
+                                        <option value="12" {{ (int)$item->tax_rate == 12 ? 'selected' : '' }}>12%</option>
+                                        <option value="18" {{ (int)$item->tax_rate == 18 ? 'selected' : '' }}>18%</option>
+                                        <option value="28" {{ (int)$item->tax_rate == 28 ? 'selected' : '' }}>28%</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select name="items[{{ $index }}][tax_type]" class="form-select tax-type-input text-center" onchange="calculateRow(this)">
+                                        <option value="exclusive" selected>Exclusive</option>
+                                        <option value="inclusive">Inclusive</option>
+                                    </select>
+                                </td>
                                 <td><input type="number" name="items[{{ $index }}][tax_amount]" class="form-control tax-amount-input text-end bg-light" value="{{ $item->tax_amount }}" readonly></td>
                                 <td><input type="number" name="items[{{ $index }}][total]" class="form-control total-input text-end fw-bold bg-light" value="{{ $item->total }}" readonly></td>
                                 <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm rounded-circle" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
@@ -99,14 +115,29 @@
                                     <select name="items[0][product_id]" class="form-select product-select select2" onchange="updateProduct(this)" required>
                                         <option value="">Select Product</option>
                                         @foreach($products as $product)
-                                            <option value="{{ $product->id }}" data-price="{{ $product->purchase_price ?? 0 }}">{{ $product->name }}</option>
+                                            <option value="{{ $product->id }}" data-price="{{ $product->purchase_price ?? 0 }}" data-description="{{ $product->product_description ?? $product->description ?? '' }}">{{ $product->name }}</option>
                                         @endforeach
                                     </select>
                                     <input type="hidden" name="items[0][product_name]" class="product-name">
+                                    <textarea name="items[0][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" placeholder="Custom Description (optional)"></textarea>
                                 </td>
                                 <td><input type="number" name="items[0][quantity]" class="form-control qty-input text-center" value="1" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
-                                <td><input type="number" name="items[0][price]" class="form-control price-input text-end" step="0.01" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
-                                <td><input type="number" name="items[0][tax_rate]" class="form-control tax-rate-input text-center" step="0.01" value="0" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
+                                <td><input type="number" name="items[0][price]" class="form-control price-input text-end" step="0.01" data-entered-price="" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
+                                <td>
+                                    <select name="items[0][tax_rate]" class="form-select tax-rate-input text-center" onchange="calculateRow(this)">
+                                        <option value="0" selected>0%</option>
+                                        <option value="5">5%</option>
+                                        <option value="12">12%</option>
+                                        <option value="18">18%</option>
+                                        <option value="28">28%</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select name="items[0][tax_type]" class="form-select tax-type-input text-center" onchange="calculateRow(this)">
+                                        <option value="exclusive" selected>Exclusive</option>
+                                        <option value="inclusive">Inclusive</option>
+                                    </select>
+                                </td>
                                 <td><input type="number" name="items[0][tax_amount]" class="form-control tax-amount-input text-end bg-light" step="0.01" readonly></td>
                                 <td><input type="number" name="items[0][total]" class="form-control total-input text-end fw-bold bg-light" step="0.01" readonly></td>
                                 <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm rounded-circle" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
@@ -172,30 +203,125 @@
 </form>
 
 @push('scripts')
+<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+<style>
+    .ck-editor__editable_inline {
+        min-height: 80px !important;
+    }
+</style>
 <script>
+    // CKEditor Instances Map
+    let editors = {};
+
+    function initEditor(textarea) {
+        if (!textarea) return;
+        const id = textarea.getAttribute('id') || 'editor-' + Math.random().toString(36).substring(2, 9);
+        textarea.setAttribute('id', id);
+        
+        // Destroy if already exists to prevent duplication
+        if (editors[id]) {
+            editors[id].destroy().then(() => {
+                delete editors[id];
+                createEditor(textarea, id);
+            });
+        } else {
+            createEditor(textarea, id);
+        }
+    }
+
+    function createEditor(textarea, id) {
+        ClassicEditor
+            .create(textarea, {
+                toolbar: [ 'bold', 'italic', '|', 'bulletedList', 'numberedList', '|', 'undo', 'redo' ]
+            })
+            .then(editor => {
+                editors[id] = editor;
+                editor.model.document.on('change:data', () => {
+                    editor.updateSourceElement();
+                });
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+
+    function removeEditor(textarea) {
+        if (!textarea) return;
+        const id = textarea.getAttribute('id');
+        if (id && editors[id]) {
+            editors[id].destroy().then(() => {
+                delete editors[id];
+            });
+        }
+    }
+
+    function initAllEditors() {
+        document.querySelectorAll('.item-description').forEach(textarea => {
+            initEditor(textarea);
+        });
+    }
+
     function updateProduct(select) {
         const row = select.closest('tr');
         const selectedOption = select.options[select.selectedIndex];
-        const price = selectedOption.getAttribute('data-price');
+        const price = selectedOption.getAttribute('data-price') || 0;
         const name = selectedOption.text;
+        const description = selectedOption.getAttribute('data-description') || '';
         
-        row.querySelector('.price-input').value = price || 0;
+        const priceInput = row.querySelector('.price-input');
+        priceInput.value = price;
+        priceInput.setAttribute('data-entered-price', price);
         row.querySelector('.product-name').value = name;
+        
+        const descTextarea = row.querySelector('.item-description');
+        if (descTextarea) {
+            if (descTextarea.id && editors[descTextarea.id]) {
+                editors[descTextarea.id].setData(description);
+            } else {
+                descTextarea.value = description;
+            }
+        }
         calculateRow(select);
     }
 
     function calculateRow(element) {
         const row = element.closest('tr');
         const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
-        const price = parseFloat(row.querySelector('.price-input').value) || 0;
-        const taxRate = parseFloat(row.querySelector('.tax-rate-input').value) || 0;
+        const priceInput = row.querySelector('.price-input');
         
-        const baseAmount = qty * price;
-        const taxAmount = baseAmount * (taxRate / 100);
-        const total = baseAmount + taxAmount;
+        // Update data-entered-price when user is actively editing the field
+        if (document.activeElement === priceInput) {
+            priceInput.setAttribute('data-entered-price', priceInput.value);
+        }
+        
+        const enteredPrice = parseFloat(priceInput.getAttribute('data-entered-price')) || parseFloat(priceInput.value) || 0;
+        const taxRate = parseFloat(row.querySelector('.tax-rate-input').value) || 0;
+        const taxType = row.querySelector('.tax-type-input').value || 'exclusive';
+        
+        let taxablePrice = enteredPrice;
+        let taxAmount = 0;
+        let total = 0;
+        
+        if (taxType === 'inclusive') {
+            taxablePrice = enteredPrice / (1 + taxRate / 100);
+            const baseAmount = qty * taxablePrice;
+            const totalAmount = qty * enteredPrice;
+            taxAmount = totalAmount - baseAmount;
+            total = totalAmount;
+        } else {
+            taxablePrice = enteredPrice;
+            const baseAmount = qty * taxablePrice;
+            taxAmount = baseAmount * (taxRate / 100);
+            total = baseAmount + taxAmount;
+        }
         
         row.querySelector('.tax-amount-input').value = taxAmount.toFixed(2);
         row.querySelector('.total-input').value = total.toFixed(2);
+        
+        // Update input display only if not active editing
+        if (document.activeElement !== priceInput) {
+            priceInput.value = taxablePrice.toFixed(2);
+        }
         
         calculateTotals();
     }
@@ -206,10 +332,18 @@
         
         document.querySelectorAll('.item-row').forEach(row => {
             const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
-            const price = parseFloat(row.querySelector('.price-input').value) || 0;
-            const taxAmt = parseFloat(row.querySelector('.tax-amount-input').value) || 0;
+            const priceInput = row.querySelector('.price-input');
+            const enteredPrice = parseFloat(priceInput.getAttribute('data-entered-price')) || parseFloat(priceInput.value) || 0;
+            const taxRate = parseFloat(row.querySelector('.tax-rate-input').value) || 0;
+            const taxType = row.querySelector('.tax-type-input').value || 'exclusive';
             
-            subTotal += (qty * price);
+            let taxablePrice = enteredPrice;
+            if (taxType === 'inclusive') {
+                taxablePrice = enteredPrice / (1 + taxRate / 100);
+            }
+            
+            subTotal += (qty * taxablePrice);
+            const taxAmt = parseFloat(row.querySelector('.tax-amount-input').value) || 0;
             taxTotal += taxAmt;
         });
 
@@ -226,6 +360,25 @@
         document.getElementById('grandTotalInput').value = grandTotal.toFixed(2);
     }
 
+    // Setup Price Input Focus/Blur Handlers using event delegation
+    $(document).on('focus', '.price-input', function() {
+        const row = this.closest('tr');
+        const priceInput = row.querySelector('.price-input');
+        const enteredPrice = parseFloat(priceInput.getAttribute('data-entered-price')) || parseFloat(priceInput.value) || 0;
+        const taxType = row.querySelector('.tax-type-input').value || 'exclusive';
+        
+        if (taxType === 'inclusive' && enteredPrice > 0) {
+            priceInput.value = enteredPrice;
+        }
+    });
+
+    $(document).on('blur', '.price-input', function() {
+        const row = this.closest('tr');
+        const priceInput = row.querySelector('.price-input');
+        priceInput.setAttribute('data-entered-price', priceInput.value);
+        calculateRow(priceInput);
+    });
+
     let rowCount = {{ isset($purchase) ? $purchase->items->count() : 1 }};
 
     function addRow() {
@@ -238,16 +391,31 @@
                         <select name="items[${rowCount}][product_id]" class="form-select product-select select2-new-${rowCount}" onchange="updateProduct(this)" required>
                             <option value="">Select Product</option>
                             @foreach($products as $product)
-                                <option value="{{ $product->id }}" data-price="{{ $product->purchase_price ?? 0 }}">{{ $product->name }}</option>
+                                <option value="{{ $product->id }}" data-price="{{ $product->purchase_price ?? 0 }}" data-description="{{ $product->product_description ?? $product->description ?? '' }}">{{ $product->name }}</option>
                             @endforeach
                         </select>
                         <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#addProductModal"><i class="fas fa-plus"></i></button>
                     </div>
                     <input type="hidden" name="items[${rowCount}][product_name]" class="product-name">
+                    <textarea name="items[${rowCount}][item_description]" class="form-control mt-1 item-description form-control-sm" rows="2" placeholder="Custom Description (optional)"></textarea>
                 </td>
                 <td><input type="number" name="items[${rowCount}][quantity]" class="form-control qty-input text-center" value="1" min="1" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
-                <td><input type="number" name="items[${rowCount}][price]" class="form-control price-input text-end" step="0.01" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
-                <td><input type="number" name="items[${rowCount}][tax_rate]" class="form-control tax-rate-input text-center" step="0.01" value="0" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
+                <td><input type="number" name="items[${rowCount}][price]" class="form-control price-input text-end" step="0.01" data-entered-price="" onchange="calculateRow(this)" onkeyup="calculateRow(this)"></td>
+                <td>
+                    <select name="items[${rowCount}][tax_rate]" class="form-select tax-rate-input text-center" onchange="calculateRow(this)">
+                        <option value="0" selected>0%</option>
+                        <option value="5">5%</option>
+                        <option value="12">12%</option>
+                        <option value="18">18%</option>
+                        <option value="28">28%</option>
+                    </select>
+                </td>
+                <td>
+                    <select name="items[${rowCount}][tax_type]" class="form-select tax-type-input text-center" onchange="calculateRow(this)">
+                        <option value="exclusive" selected>Exclusive</option>
+                        <option value="inclusive">Inclusive</option>
+                    </select>
+                </td>
                 <td><input type="number" name="items[${rowCount}][tax_amount]" class="form-control tax-amount-input text-end bg-light" step="0.01" readonly></td>
                 <td><input type="number" name="items[${rowCount}][total]" class="form-control total-input text-end fw-bold bg-light" step="0.01" readonly></td>
                 <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm rounded-circle" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
@@ -256,12 +424,20 @@
         
         $(tbody).append(newRowHtml);
         $(`.select2-new-${rowCount}`).select2({ theme: 'bootstrap-5' });
+        
+        const newTextarea = tbody.querySelector(`textarea[name="items[${rowCount}][item_description]"]`);
+        if (newTextarea) {
+            initEditor(newTextarea);
+        }
         rowCount++;
     }
 
     function removeRow(btn) {
         if(document.querySelectorAll('.item-row').length > 1) {
-            $(btn).closest('tr').fadeOut(300, function() {
+            const row = $(btn).closest('tr');
+            const textarea = row.find('.item-description')[0];
+            removeEditor(textarea);
+            row.fadeOut(300, function() {
                 $(this).remove();
                 calculateTotals();
             });
@@ -270,11 +446,80 @@
         }
     }
 
-    $(document).ready(function() {
+    function initPurchaseForm() {
         calculateTotals();
-        
+        initAllEditors();
+
+        // Handle Form Submission via AJAX to convert prices first
+        $('#purchaseForm').off('submit').on('submit', function(e) {
+            e.preventDefault();
+            
+            let form = $(this);
+            let btn = form.find('button[type="submit"]');
+            let originalText = btn.html();
+            
+            // Ensure all price inputs are set to their calculated taxable (exclusive) prices before submit
+            document.querySelectorAll('.item-row').forEach(row => {
+                const priceInput = row.querySelector('.price-input');
+                const enteredPrice = parseFloat(priceInput.getAttribute('data-entered-price')) || parseFloat(priceInput.value) || 0;
+                const taxRate = parseFloat(row.querySelector('.tax-rate-input').value) || 0;
+                const taxType = row.querySelector('.tax-type-input').value || 'exclusive';
+                
+                let taxablePrice = enteredPrice;
+                if (taxType === 'inclusive') {
+                    taxablePrice = enteredPrice / (1 + taxRate / 100);
+                }
+                priceInput.value = taxablePrice.toFixed(2);
+            });
+
+            btn.prop('disabled', true).html('<i class="fas fa-circle-notch fa-spin"></i> Saving...');
+            
+            // Sync all CKEditor instances to their underlying textareas
+            Object.values(editors).forEach(editor => {
+                editor.updateSourceElement();
+            });
+
+            $.ajax({
+                url: form.attr('action'),
+                method: 'POST',
+                data: form.serialize(),
+                success: function(response) {
+                    if(response.success) {
+                        toastr.success(response.message);
+                        
+                        // Destroy all existing editors before resetting form to prevent leaks
+                        Object.values(editors).forEach(editor => {
+                            editor.destroy();
+                        });
+                        editors = {};
+
+                        form[0].reset();
+                        $('.select2').val(null).trigger('change');
+                        $('#itemsTable tbody').empty();
+                        rowCount = 1;
+                        addRow(); 
+                        calculateTotals();
+                    }
+                },
+                error: function(xhr) {
+                    if(xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        $.each(errors, function(key, value) {
+                            toastr.error(value[0]);
+                        });
+                    } else {
+                        console.error(xhr);
+                        toastr.error('An error occurred. Please check the console.');
+                    }
+                },
+                complete: function() {
+                    btn.prop('disabled', false).html(originalText);
+                }
+            });
+        });
+
         // Handle new supplier via Ajax
-        $('#saveSupplierBtn').click(function() {
+        $('#saveSupplierBtn').off('click').on('click', function() {
             const btn = $(this);
             const name = $('#new_supplier_name').val();
             const phone = $('#new_supplier_phone').val();
@@ -314,7 +559,7 @@
         });
 
         // Handle new product via Ajax
-        $('#saveProductBtn').click(function() {
+        $('#saveProductBtn').off('click').on('click', function() {
             const btn = $(this);
             const name = $('#new_product_name').val();
             const price = $('#new_product_price').val();
@@ -344,6 +589,7 @@
                         $('.product-select').each(function() {
                             const newOption = new Option(response.product.name, response.product.id, false, false);
                             $(newOption).attr('data-price', response.product.purchase_price);
+                            $(newOption).attr('data-description', response.product.product_description || response.product.description || '');
                             $(this).append(newOption);
                         });
                         
@@ -360,6 +606,27 @@
                 }
             });
         });
+    }
+
+    $(document).ready(function() {
+        initPurchaseForm();
+
+        // Initial calculation if editing
+        @if(isset($purchase))
+            // Set JavaScript row count past existing rows
+            rowCount = {{ count($purchase->items ?? []) }};
+            
+            // Initialize data-entered-price attributes for existing rows
+            document.querySelectorAll('.item-row').forEach(row => {
+                const priceInput = row.querySelector('.price-input');
+                priceInput.setAttribute('data-entered-price', priceInput.value);
+            });
+        @endif
+    });
+
+    // Support Turbo Drive if enabled
+    document.addEventListener("turbo:load", function() {
+        initPurchaseForm();
     });
 </script>
 @endpush

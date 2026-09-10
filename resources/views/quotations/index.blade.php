@@ -80,7 +80,13 @@
                         <td>{{ $quotations->firstItem() + $index }}</td>
                         <td class="fw-bold text-primary">{{ $quotation->quotation_number }}</td>
                         <td>{{ \Carbon\Carbon::parse($quotation->quotation_date)->format('d-M-Y') }}</td>
-                        <td class="fw-bold">{{ $quotation->customer ? $quotation->customer->name : 'N/A' }}</td>
+                        <td class="fw-bold">
+                            @if($quotation->customer)
+                                <a href="{{ route('customers.show', $quotation->customer_id) }}" class="text-decoration-none" title="View customer history">{{ $quotation->customer->name }}</a>
+                            @else
+                                N/A
+                            @endif
+                        </td>
                         <td class="fw-bold">{{ number_format($quotation->total, 2) }}</td>
                         <td>
                              <span class="badge {{ $quotation->status == 'approved' ? 'bg-success' : 'bg-warning text-dark' }}">

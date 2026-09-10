@@ -16,7 +16,7 @@ class Invoice extends Model
         'sold_by', 'delivery_terms', 'remarks',
         'payment_1_date', 'payment_1_mode', 'payment_1_txn_id', 'payment_1_amount',
         'payment_2_date', 'payment_2_mode', 'payment_2_txn_id', 'payment_2_amount',
-        'shipping_charges', 'reference_number', 'balance_amount'
+        'shipping_charges', 'reference_number', 'balance_amount', 'partner_logo'
     ];
 
     public function customer()

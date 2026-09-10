@@ -96,6 +96,11 @@
                 </div>
             </div>
             <div class="gst-box">
+                @if($invoice->partner_logo)
+                    <div style="text-align: center; margin-bottom: 10px;">
+                        <img src="{{ asset($invoice->partner_logo) }}" alt="Partner Logo" style="max-height: 50px; max-width: 100%; object-fit: contain;">
+                    </div>
+                @endif
                 <div style="margin-bottom: 15px;">GSTIN: 33AANCB5605Q1Z9</div>
                 <div>PAN: AANCB5605Q</div>
             </div>

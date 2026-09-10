@@ -89,7 +89,13 @@
                         <td>{{ strtoupper($invoice->type ?? 'GST') }}</td>
                         <td class="fw-bold text-primary">{{ $invoice->invoice_number }}</td>
                         <td>{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d-M-Y') }}</td>
-                        <td class="fw-bold">{{ $invoice->customer ? $invoice->customer->name : 'N/A' }}</td>
+                        <td class="fw-bold">
+                            @if($invoice->customer)
+                                <a href="{{ route('customers.show', $invoice->customer_id) }}" class="text-decoration-none" title="View customer history">{{ $invoice->customer->name }}</a>
+                            @else
+                                N/A
+                            @endif
+                        </td>
                         <td>{{ $invoice->customer ? $invoice->customer->phone : '-' }}</td>
                         <td>{{ Str::limit($invoice->customer ? $invoice->customer->address : '-', 20) }}</td>
                         <td class="fw-bold">{{ number_format($invoice->total, 2) }}</td>

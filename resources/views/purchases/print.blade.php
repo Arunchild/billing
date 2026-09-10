@@ -57,7 +57,12 @@
                 <tbody>
                     @foreach($purchase->items as $item)
                     <tr>
-                        <td>{{ $item->product_name }}</td>
+                        <td>
+                            {{ $item->product_name }}
+                            @if($item->item_description)
+                                <br><small style="color: #555; font-size: 11px;">{!! $item->item_description !!}</small>
+                            @endif
+                        </td>
                         <td class="text-center">{{ $item->quantity }}</td>
                         <td class="text-end">{{ number_format($item->price, 2) }}</td>
                         <td class="text-end">{{ number_format($item->tax_amount, 2) }}</td>

@@ -35,7 +35,7 @@
                     <tr>
                         <td><span class="badge bg-primary">{{ $customer->reg_no }}</span></td>
                         <td>
-                            <div class="fw-medium">{{ $customer->name }}</div>
+                            <a href="{{ route('customers.show', $customer->id) }}" class="fw-medium text-decoration-none" title="View invoices, quotations & receipts">{{ $customer->name }}</a>
                             @if($customer->age || $customer->gender)
                                 <small class="text-muted">{{ $customer->age }}Y {{ $customer->gender }}</small>
                             @endif
@@ -50,6 +50,9 @@
                         </td>
                         <td>{{ $customer->city ?? '-' }}</td>
                         <td class="text-end">
+                            <a href="{{ route('customers.show', $customer->id) }}" class="btn btn-sm btn-outline-dark" title="View History">
+                                <i class="fas fa-folder-open"></i>
+                            </a>
                             @if($customer->barcode)
                                 <a href="{{ route('barcode.label', $customer->id) }}" class="btn btn-sm btn-outline-success" title="Print Barcode" target="_blank">
                                     <i class="fas fa-barcode"></i>
@@ -153,6 +156,30 @@
                         </div>
                     </div>
 
+                    <hr class="my-3">
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label mb-0 fw-bold text-primary"><i class="fas fa-comment-medical me-1"></i> Remarks</label>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRemarkRow()">
+                            <i class="fas fa-plus"></i> Add Remark
+                        </button>
+                    </div>
+                    <input type="hidden" name="remarks_submitted" value="1">
+                    <div class="table-responsive mb-3">
+                        <table class="table table-sm align-middle mb-0 remarks-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 150px;">Date</th>
+                                    <th>Purpose</th>
+                                    <th>Solution</th>
+                                    <th style="width: 40px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="remarksBody"></tbody>
+                        </table>
+                        <div class="text-muted small py-2" id="remarksEmpty">No remarks yet. Click "Add Remark" to record a visit.</div>
+                    </div>
+
                     <div class="text-end">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary" id="saveCustBtn">Save Changes</button>
@@ -165,6 +192,50 @@
 
 @push('scripts')
 <script>
+    let remarkIndex = 0;
+
+    function escapeHtml(value) {
+        return $('<div>').text(value === null || value === undefined ? '' : value).html();
+    }
+
+    function toggleRemarksEmpty() {
+        $('#remarksEmpty').toggle($('#remarksBody tr').length === 0);
+    }
+
+    function addRemarkRow(remark) {
+        remark = remark || {};
+        const i = remarkIndex++;
+        const today = new Date().toISOString().slice(0, 10);
+        const date = remark.remark_date ? String(remark.remark_date).slice(0, 10) : today;
+
+        $('#remarksBody').append(
+            '<tr>' +
+                '<td>' +
+                    '<input type="hidden" name="remarks[' + i + '][id]" value="' + escapeHtml(remark.id || '') + '">' +
+                    '<input type="date" name="remarks[' + i + '][remark_date]" class="form-control form-control-sm" value="' + escapeHtml(date) + '">' +
+                '</td>' +
+                '<td><textarea name="remarks[' + i + '][purpose]" class="form-control form-control-sm" rows="2" placeholder="Why they came in">' + escapeHtml(remark.purpose) + '</textarea></td>' +
+                '<td><textarea name="remarks[' + i + '][solution]" class="form-control form-control-sm" rows="2" placeholder="What was done">' + escapeHtml(remark.solution) + '</textarea></td>' +
+                '<td class="text-end align-top">' +
+                    '<button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRemarkRow(this)" title="Remove"><i class="fas fa-times"></i></button>' +
+                '</td>' +
+            '</tr>'
+        );
+        toggleRemarksEmpty();
+    }
+
+    function removeRemarkRow(btn) {
+        $(btn).closest('tr').remove();
+        toggleRemarksEmpty();
+    }
+
+    function loadRemarks(remarks) {
+        $('#remarksBody').empty();
+        remarkIndex = 0;
+        (remarks || []).forEach(function(remark) { addRemarkRow(remark); });
+        toggleRemarksEmpty();
+    }
+
     function openCreateModal() {
         $('#customerModalTitle').text('Add New Customer');
         $('#customerForm').attr('action', '{{ route('customers.store') }}');
@@ -180,6 +251,7 @@
         $('#custAddress').val('');
         $('#custCity').val('');
         $('#custPincode').val('');
+        loadRemarks([]);
         
         $('#customerModal').modal('show');
     }
@@ -199,6 +271,7 @@
         $('#custAddress').val(customer.address);
         $('#custCity').val(customer.city);
         $('#custPincode').val(customer.pincode);
+        loadRemarks(customer.remarks);
         
         $('#customerModal').modal('show');
     }
