@@ -57,13 +57,40 @@ class Customer extends Model
 
     public static function generateRegNo()
     {
-        $lastCustomer = self::orderBy('id', 'desc')->first();
-        $nextId = $lastCustomer ? $lastCustomer->id + 1 : 1;
-        return str_pad($nextId, 6, '0', STR_PAD_LEFT) . '/' . date('Y');
+        $suffix = '/' . date('Y');
+
+        // Zero-padded sequence means string ordering matches numeric ordering.
+        // withTrashed() matters: soft-deleted rows still hold the unique reg_no.
+        $lastRegNo = self::withTrashed()
+            ->where('reg_no', 'like', '%' . $suffix)
+            ->orderBy('reg_no', 'desc')
+            ->value('reg_no');
+
+        $next = $lastRegNo ? ((int) explode('/', $lastRegNo)[0]) + 1 : 1;
+
+        do {
+            $regNo = str_pad($next, 6, '0', STR_PAD_LEFT) . $suffix;
+            $next++;
+        } while (self::withTrashed()->where('reg_no', $regNo)->exists());
+
+        return $regNo;
     }
 
     public static function generateBarcode()
     {
-        return '82700' . str_pad(rand(1, 99999), 5, '0', STR_PAD_LEFT);
+        for ($attempt = 0; $attempt < 20; $attempt++) {
+            $barcode = '82700' . str_pad(random_int(1, 99999), 5, '0', STR_PAD_LEFT);
+
+            if (!self::withTrashed()->where('barcode', $barcode)->exists()) {
+                return $barcode;
+            }
+        }
+
+        // Pool exhausted or heavy contention: fall back to a wider unique value.
+        do {
+            $barcode = '82700' . random_int(100000, 999999);
+        } while (self::withTrashed()->where('barcode', $barcode)->exists());
+
+        return $barcode;
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Arr;
 
 class CustomerController extends Controller
@@ -23,11 +24,24 @@ class CustomerController extends Controller
         $validated = $request->validate($this->rules());
         $remarks = Arr::pull($validated, 'remarks', []);
 
-        // Auto-generate reg_no and barcode
-        $validated['reg_no'] = \App\Models\Customer::generateRegNo();
-        $validated['barcode'] = \App\Models\Customer::generateBarcode();
+        // Auto-generate reg_no and barcode. Both columns are unique, so retry
+        // if a concurrent insert claimed the same number first.
+        $customer = null;
 
-        $customer = \App\Models\Customer::create($validated);
+        for ($attempt = 1; $attempt <= 5; $attempt++) {
+            $validated['reg_no'] = \App\Models\Customer::generateRegNo();
+            $validated['barcode'] = \App\Models\Customer::generateBarcode();
+
+            try {
+                $customer = \App\Models\Customer::create($validated);
+                break;
+            } catch (UniqueConstraintViolationException $e) {
+                if ($attempt === 5) {
+                    throw $e;
+                }
+            }
+        }
+
         $this->syncRemarks($customer, $remarks);
 
         if ($request->wantsJson() || $request->ajax()) {
