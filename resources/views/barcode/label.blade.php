@@ -154,9 +154,9 @@
             </div>
 
             <div class="info">
-                <div class="info-row name">Mr. {{ strtoupper($customer->name) }}</div>
+                <div class="info-row name">{{ trim($customer->salutation . ' ' . strtoupper($customer->name)) }}</div>
                 <div class="info-row"><strong>Reg No:</strong> {{ $customer->reg_no }}</div>
-                <div class="info-row"><strong>Gen/Age:</strong> {{ $customer->gender ?? 'M' }} / {{ $customer->age ?? '-' }} Y</div>
+                <div class="info-row"><strong>Gen/Age:</strong> {{ $customer->gender ?? '-' }} / {{ $customer->age ?? '-' }} Y</div>
                 <div class="info-row"><strong>Mobile:</strong> {{ $customer->phone ?? '-' }}</div>
                 <div class="info-row"><strong>City:</strong> {{ $customer->city ?? 'MARTHANDAM' }}</div>
             </div>

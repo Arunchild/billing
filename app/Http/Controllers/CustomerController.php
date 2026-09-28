@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Arr;
+use Illuminate\Validation\Rule;
+use App\Models\Customer;
 
 class CustomerController extends Controller
 {
@@ -51,7 +53,8 @@ class CustomerController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate($this->rules());
+        $this->normalizePhones($request);
+        $validated = $request->validate($this->rules(), $this->messages());
         $remarks = Arr::pull($validated, 'remarks', []);
 
         // Auto-generate reg_no and barcode. Both columns are unique, so retry
@@ -117,7 +120,8 @@ class CustomerController extends Controller
     {
         $customer = \App\Models\Customer::findOrFail($id);
 
-        $validated = $request->validate($this->rules());
+        $this->normalizePhones($request);
+        $validated = $request->validate($this->rules(), $this->messages());
         $remarks = Arr::pull($validated, 'remarks', []);
 
         $customer->update($validated);
@@ -148,25 +152,72 @@ class CustomerController extends Controller
         return redirect()->route('customers.index')->with('success', 'Customer deleted successfully.');
     }
 
+    private const INDIAN_MOBILE = 'regex:/^[6-9][0-9]{9}$/';
+
     private function rules(): array
     {
         return [
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
+            'phone' => ['nullable', self::INDIAN_MOBILE],
+            'alternate_phone' => ['nullable', self::INDIAN_MOBILE, 'different:phone'],
+            'address' => 'nullable|string|max:1000',
             'gst_number' => 'nullable|string|max:20',
-            'age' => 'nullable|integer',
+            'age' => 'nullable|integer|min:0|max:120',
             'gender' => 'nullable|in:M,F,Other',
-            'city' => 'nullable|string',
-            'date_of_birth' => 'nullable|date',
-            'pincode' => 'nullable|string',
+            'weight' => 'nullable|numeric|min:1|max:300',
+            'height' => 'nullable|numeric|min:30|max:250',
+            'city' => 'nullable|string|max:255',
+            'date_of_birth' => 'nullable|date|before_or_equal:today',
+            'pincode' => ['nullable', 'regex:/^[1-9][0-9]{5}$/'],
+            'is_diabetic' => 'nullable|boolean',
+            'on_insulin' => 'nullable|boolean',
+            'latex_allergy' => 'nullable|boolean',
+            'medical_notes' => 'nullable|string|max:500',
+            'employment_status' => ['nullable', Rule::in(array_keys(Customer::EMPLOYMENT_STATUSES))],
+            'employment_details' => 'nullable|string|max:255',
+            'referral_source' => ['nullable', Rule::in(array_keys(Customer::REFERRAL_SOURCES))],
+            'referral_details' => 'nullable|string|max:500',
             'remarks' => 'nullable|array',
             'remarks.*.id' => 'nullable|integer',
             'remarks.*.remark_date' => 'nullable|date',
             'remarks.*.purpose' => 'nullable|string|max:2000',
             'remarks.*.solution' => 'nullable|string|max:2000',
         ];
+    }
+
+    private function messages(): array
+    {
+        return [
+            'phone.regex' => 'Enter a valid 10-digit Indian mobile number (starting with 6-9).',
+            'alternate_phone.regex' => 'Enter a valid 10-digit Indian mobile number (starting with 6-9).',
+            'alternate_phone.different' => 'Alternate number must differ from the primary phone.',
+            'pincode.regex' => 'Enter a valid 6-digit pincode.',
+            'date_of_birth.before_or_equal' => 'Date of birth cannot be in the future.',
+        ];
+    }
+
+    /**
+     * Accept numbers typed as "+91 98765 43210", "098765-43210" etc. by
+     * reducing them to the bare 10 digits before validation.
+     */
+    private function normalizePhones(Request $request): void
+    {
+        foreach (['phone', 'alternate_phone'] as $field) {
+            $value = $request->input($field);
+            if (!is_string($value) || trim($value) === '') {
+                continue;
+            }
+
+            $digits = preg_replace('/\D/', '', $value);
+            if (strlen($digits) === 12 && str_starts_with($digits, '91')) {
+                $digits = substr($digits, 2);
+            } elseif (strlen($digits) === 11 && str_starts_with($digits, '0')) {
+                $digits = substr($digits, 1);
+            }
+
+            $request->merge([$field => $digits]);
+        }
     }
 
     /**

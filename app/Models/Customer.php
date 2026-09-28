@@ -12,8 +12,48 @@ class Customer extends Model
     protected $fillable = [
         'name', 'email', 'phone', 'address', 'gst_number',
         'reg_no', 'age', 'gender', 'city', 'barcode',
-        'date_of_birth', 'pincode'
+        'date_of_birth', 'pincode',
+        'alternate_phone', 'weight', 'height',
+        'is_diabetic', 'on_insulin', 'latex_allergy', 'medical_notes',
+        'employment_status', 'employment_details',
+        'referral_source', 'referral_details',
     ];
+
+    protected $casts = [
+        'date_of_birth' => 'date:Y-m-d',
+        'is_diabetic' => 'boolean',
+        'on_insulin' => 'boolean',
+        'latex_allergy' => 'boolean',
+    ];
+
+    public const EMPLOYMENT_STATUSES = [
+        'full_time' => 'Full Time',
+        'part_time' => 'Part Time',
+        'self_employed' => 'Self Employed',
+        'unemployed' => 'Unemployed',
+        'student' => 'Student',
+        'retired' => 'Retired',
+    ];
+
+    public const REFERRAL_SOURCES = [
+        'hospital' => 'Hospital',
+        'physiotherapist' => 'Physiotherapist',
+        'family_friends' => 'Family / Friends',
+        'online' => 'Online',
+    ];
+
+    /**
+     * Name prefix for printed labels, derived from gender. Unknown/other gets none.
+     * (Not "title": production has an unused customers.title column.)
+     */
+    public function getSalutationAttribute(): string
+    {
+        return match ($this->gender) {
+            'M' => 'Mr.',
+            'F' => 'Ms.',
+            default => '',
+        };
+    }
 
     public function invoices()
     {

@@ -105,7 +105,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Phone</label>
-                            <input type="text" name="phone" id="custPhone" class="form-control">
+                            <input type="tel" name="phone" id="custPhone" class="form-control" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" title="10-digit Indian mobile number starting with 6-9">
                         </div>
                     </div>
 
@@ -123,11 +123,11 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Date of Birth</label>
-                            <input type="date" name="date_of_birth" id="custDob" class="form-control">
+                            <input type="date" name="date_of_birth" id="custDob" class="form-control" max="{{ date('Y-m-d') }}">
                         </div>
                         <div class="col-md-3 mb-3">
                             <label class="form-label">Age</label>
-                            <input type="number" name="age" id="custAge" class="form-control">
+                            <input type="number" name="age" id="custAge" class="form-control" min="0" max="120">
                         </div>
                          <div class="col-md-3 mb-3">
                             <label class="form-label">Gender</label>
@@ -152,9 +152,11 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Pincode</label>
-                            <input type="text" name="pincode" id="custPincode" class="form-control">
+                            <input type="text" name="pincode" id="custPincode" class="form-control" inputmode="numeric" maxlength="6" pattern="[1-9][0-9]{5}" title="6-digit pincode">
                         </div>
                     </div>
+
+                    @include('customers._registration_fields')
 
                     @include('customers._remarks')
 
@@ -170,6 +172,37 @@
 
 @push('scripts')
 <script>
+    const REGISTRATION_FIELDS = [
+        'alternate_phone', 'weight', 'height', 'is_diabetic', 'on_insulin', 'latex_allergy',
+        'medical_notes', 'employment_status', 'employment_details', 'referral_source', 'referral_details'
+    ];
+
+    function fillRegistrationFields(customer) {
+        const form = $('#customerForm');
+        REGISTRATION_FIELDS.forEach(function (field) {
+            let value = customer[field];
+            if (typeof value === 'boolean') value = value ? '1' : '0';
+            form.find('[name="' + field + '"]').val(value === null || value === undefined ? '' : value);
+        });
+        clearFieldErrors();
+    }
+
+    function clearFieldErrors() {
+        $('#customerForm .is-invalid').removeClass('is-invalid');
+        $('#customerForm .invalid-feedback.js-error').remove();
+    }
+
+    function showFieldErrors(errors) {
+        clearFieldErrors();
+        $.each(errors, function (field, messages) {
+            const input = $('#customerForm [name="' + field + '"]');
+            if (!input.length) return;
+            input.addClass('is-invalid')
+                .after('<div class="invalid-feedback js-error">' + $('<div>').text(messages[0]).html() + '</div>');
+        });
+        $('#customerForm .is-invalid').first().trigger('focus');
+    }
+
     function openCreateModal() {
         $('#customerModalTitle').text('Add New Customer');
         $('#customerForm').attr('action', '{{ route('customers.store') }}');
@@ -185,6 +218,7 @@
         $('#custAddress').val('');
         $('#custCity').val('');
         $('#custPincode').val('');
+        fillRegistrationFields({});
         loadRemarks([]);
         
         $('#customerModal').modal('show');
@@ -205,6 +239,7 @@
         $('#custAddress').val(customer.address);
         $('#custCity').val(customer.city);
         $('#custPincode').val(customer.pincode);
+        fillRegistrationFields(customer);
         loadRemarks(customer.remarks);
         
         $('#customerModal').modal('show');
@@ -216,6 +251,7 @@
         const form = $(this);
         
         btn.prop('disabled', true).text('Saving...');
+        clearFieldErrors();
         
         $.ajax({
             url: form.attr('action'),
@@ -230,7 +266,12 @@
                 }
             },
             error: function(xhr) {
-                toastr.error('Error saving customer. Check inputs.');
+                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                    showFieldErrors(xhr.responseJSON.errors);
+                    toastr.error(Object.values(xhr.responseJSON.errors)[0][0]);
+                } else {
+                    toastr.error('Error saving customer. Check inputs.');
+                }
             },
             complete: function() {
                 btn.prop('disabled', false).text('Save Changes');

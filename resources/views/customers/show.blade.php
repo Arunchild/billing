@@ -34,6 +34,27 @@
                             @if($customer->gst_number)<span class="ms-2"><i class="fas fa-file-invoice me-1"></i>GSTIN: {{ $customer->gst_number }}</span>@endif
                         </div>
                         @endif
+                        @php
+                            $yn = fn ($v) => $v === null ? null : ($v ? 'Yes' : 'No');
+                            $details = array_filter([
+                                'Alt. Phone' => $customer->alternate_phone,
+                                'Weight' => $customer->weight ? rtrim(rtrim($customer->weight, '0'), '.') . ' kg' : null,
+                                'Height' => $customer->height ? rtrim(rtrim($customer->height, '0'), '.') . ' cm' : null,
+                                'Diabetic' => $yn($customer->is_diabetic),
+                                'Insulin' => $yn($customer->on_insulin),
+                                'Latex Allergy' => $yn($customer->latex_allergy),
+                                'Medical' => $customer->medical_notes,
+                                'Employment' => trim((\App\Models\Customer::EMPLOYMENT_STATUSES[$customer->employment_status] ?? '') . ($customer->employment_details ? ' - ' . $customer->employment_details : ''), ' -'),
+                                'Referred via' => trim((\App\Models\Customer::REFERRAL_SOURCES[$customer->referral_source] ?? '') . ($customer->referral_details ? ' - ' . $customer->referral_details : ''), ' -'),
+                            ], fn ($v) => $v !== null && $v !== '');
+                        @endphp
+                        @if($details)
+                        <div class="d-flex flex-wrap gap-3 small text-muted mt-1">
+                            @foreach($details as $label => $value)
+                                <span><strong>{{ $label }}:</strong> {{ $value }}</span>
+                            @endforeach
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
