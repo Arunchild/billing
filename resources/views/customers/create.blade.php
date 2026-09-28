@@ -20,7 +20,11 @@
                 <form action="{{ route('customers.store') }}" method="POST">
                     @csrf
                     <div class="row g-3">
-                        <div class="col-md-8">
+                        <div class="col-md-2">
+                            <label class="form-label">Title</label>
+                            @include('customers._title_select', ['selected' => old('title')])
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label">Full Name <span class="text-danger">*</span></label>
                             <input type="text" name="name" class="form-control" value="{{ old('name') }}" required maxlength="255">
                         </div>

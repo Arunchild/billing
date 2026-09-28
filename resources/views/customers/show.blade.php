@@ -19,7 +19,7 @@
                 <div class="d-flex align-items-center gap-3">
                     <div class="cust-avatar">{{ strtoupper(substr($customer->name, 0, 1)) }}</div>
                     <div>
-                        <h5 class="mb-1 fw-bold">{{ $customer->name }}</h5>
+                        <h5 class="mb-1 fw-bold">{{ trim($customer->salutation . ' ' . $customer->name) }}</h5>
                         <div class="d-flex flex-wrap gap-2 small text-muted">
                             @if($customer->reg_no)<span class="badge bg-primary">{{ $customer->reg_no }}</span>@endif
                             @if($customer->barcode)<span class="badge bg-success">{{ $customer->barcode }}</span>@endif

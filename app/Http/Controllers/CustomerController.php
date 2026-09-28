@@ -157,6 +157,7 @@ class CustomerController extends Controller
     private function rules(): array
     {
         return [
+            'title' => ['nullable', Rule::in(array_keys(Customer::TITLES))],
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
             'phone' => ['nullable', self::INDIAN_MOBILE],

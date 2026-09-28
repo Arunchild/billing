@@ -10,7 +10,7 @@ class Customer extends Model
     use SoftDeletes;
     
     protected $fillable = [
-        'name', 'email', 'phone', 'address', 'gst_number',
+        'title', 'name', 'email', 'phone', 'address', 'gst_number',
         'reg_no', 'age', 'gender', 'city', 'barcode',
         'date_of_birth', 'pincode',
         'alternate_phone', 'weight', 'height',
@@ -24,6 +24,19 @@ class Customer extends Model
         'is_diabetic' => 'boolean',
         'on_insulin' => 'boolean',
         'latex_allergy' => 'boolean',
+    ];
+
+    /**
+     * Stored value => printed prefix. Values match the "Mr" rows already in production.
+     */
+    public const TITLES = [
+        'Mr' => 'Mr.',
+        'Mrs' => 'Mrs.',
+        'Ms' => 'Ms.',
+        'Miss' => 'Miss',
+        'Master' => 'Master',
+        'Baby' => 'Baby',
+        'Dr' => 'Dr.',
     ];
 
     public const EMPLOYMENT_STATUSES = [
@@ -43,11 +56,15 @@ class Customer extends Model
     ];
 
     /**
-     * Name prefix for printed labels, derived from gender. Unknown/other gets none.
-     * (Not "title": production has an unused customers.title column.)
+     * Name prefix for printed labels: the chosen title, else one derived from
+     * gender. Unknown/other gets none.
      */
     public function getSalutationAttribute(): string
     {
+        if ($this->title) {
+            return self::TITLES[$this->title] ?? $this->title;
+        }
+
         return match ($this->gender) {
             'M' => 'Mr.',
             'F' => 'Ms.',

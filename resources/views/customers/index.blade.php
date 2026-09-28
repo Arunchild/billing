@@ -35,7 +35,7 @@
                     <tr>
                         <td><span class="badge bg-primary">{{ $customer->reg_no }}</span></td>
                         <td>
-                            <a href="{{ route('customers.show', $customer->id) }}" class="fw-medium text-decoration-none" title="View invoices, quotations & receipts">{{ $customer->name }}</a>
+                            <a href="{{ route('customers.show', $customer->id) }}" class="fw-medium text-decoration-none" title="View invoices, quotations & receipts">{{ trim($customer->salutation . ' ' . $customer->name) }}</a>
                             @if($customer->age || $customer->gender)
                                 <small class="text-muted">{{ $customer->age }}Y {{ $customer->gender }}</small>
                             @endif
@@ -99,11 +99,15 @@
                     <div id="methodField"></div>
                     
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">Title</label>
+                            @include('customers._title_select', ['id' => 'custTitle'])
+                        </div>
+                        <div class="col-md-5 mb-3">
                             <label class="form-label">Customer Name <span class="text-danger">*</span></label>
                             <input type="text" name="name" id="custName" class="form-control" required>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-5 mb-3">
                             <label class="form-label">Phone</label>
                             <input type="tel" name="phone" id="custPhone" class="form-control" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" title="10-digit Indian mobile number starting with 6-9">
                         </div>
@@ -208,6 +212,7 @@
         $('#customerForm').attr('action', '{{ route('customers.store') }}');
         $('#methodField').html('');
         
+        $('#custTitle').val('');
         $('#custName').val('');
         $('#custPhone').val('');
         $('#custEmail').val('');
@@ -229,6 +234,7 @@
         $('#customerForm').attr('action', '/customers/' + customer.id);
         $('#methodField').html('<input type="hidden" name="_method" value="PUT">');
         
+        $('#custTitle').val(customer.title || '');
         $('#custName').val(customer.name);
         $('#custPhone').val(customer.phone);
         $('#custEmail').val(customer.email);
