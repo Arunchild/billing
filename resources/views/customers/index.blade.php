@@ -231,7 +231,7 @@
 
     function openEditModal(customer) {
         $('#customerModalTitle').text('Edit Customer');
-        $('#customerForm').attr('action', '/customers/' + customer.id);
+        $('#customerForm').attr('action', '{{ route('customers.update', '__ID__') }}'.replace('__ID__', customer.id));
         $('#methodField').html('<input type="hidden" name="_method" value="PUT">');
         
         $('#custTitle').val(customer.title || '');

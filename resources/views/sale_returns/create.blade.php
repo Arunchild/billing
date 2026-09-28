@@ -313,7 +313,7 @@
 
         // Fetch invoice items
         $.ajax({
-            url: '/invoices/' + invoiceId + '/items',
+            url: '{{ route('invoices.items', '__ID__') }}'.replace('__ID__', invoiceId),
             method: 'GET',
             success: function(response) {
                 // response should be invoice object with items

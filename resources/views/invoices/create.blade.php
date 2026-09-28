@@ -630,7 +630,7 @@
                         
                         // Handle Print
                         if(shouldPrintAfterSave && response.invoice_id) {
-                            window.open('/invoices/' + response.invoice_id + '/print', '_blank');
+                            window.open('{{ route('invoices.print', '__ID__') }}'.replace('__ID__', response.invoice_id), '_blank');
                             shouldPrintAfterSave = false; // Reset flag
                         }
 

@@ -197,7 +197,7 @@
         if(selected.length > 5 && !confirm('Open ' + selected.length + ' windows?')) return;
 
         selected.forEach(id => {
-             window.open('/quotations/' + id + '/print', '_blank');
+             window.open('{{ route('quotations.print', '__ID__') }}'.replace('__ID__', id), '_blank');
         });
     }
 </script>
