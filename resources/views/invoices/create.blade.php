@@ -616,7 +616,11 @@
 
             $.ajax({
                 url: form.attr('action'),
-                method: form.find('input[name="_method"]').length > 0 ? form.find('input[name="_method"]').val() : 'POST',
+                // Always POST. The form carries _method=PUT for edits and Laravel
+                // spoofs the verb from it. Sending a real PUT breaks on PHP < 8.4,
+                // where multipart bodies are only parsed for POST - $_POST comes
+                // back empty, _token is lost and the request fails CSRF.
+                method: 'POST',
                 data: formData,
                 processData: false,
                 contentType: false,

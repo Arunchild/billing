@@ -460,9 +460,16 @@
     <!-- Top Bar -->
     <div class="top-bar animate__animated animate__fadeInDown">
         <div class="d-flex align-items-center" style="width: 50%;">
-            <form action="{{ route('invoices.index') }}" method="GET" class="input-group">
-                <input type="text" name="search" class="form-control" placeholder="Invoice No or Customer Name or Mobile No" value="{{ request('search') }}">
-                <button class="btn btn-success" type="submit"><i class="fas fa-search"></i> Search in Invoice</button>
+            {{-- On the customers page this searches customers; everywhere else it
+                 keeps its original behaviour of searching invoices. --}}
+            @php($searchCustomers = request()->routeIs('customers.*'))
+            <form action="{{ $searchCustomers ? route('customers.index') : route('invoices.index') }}" method="GET" class="input-group">
+                <input type="text" name="search" class="form-control"
+                       placeholder="{{ $searchCustomers ? 'Name, Mobile, Reg No, Barcode, City, Email...' : 'Invoice No or Customer Name or Mobile No' }}"
+                       value="{{ request('search') }}">
+                <button class="btn btn-success" type="submit">
+                    <i class="fas fa-search"></i> {{ $searchCustomers ? 'Search Customers' : 'Search in Invoice' }}
+                </button>
             </form>
         </div>
         <div class="d-flex align-items-center gap-3">

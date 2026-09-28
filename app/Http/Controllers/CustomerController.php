@@ -8,9 +8,39 @@ use Illuminate\Support\Arr;
 
 class CustomerController extends Controller
 {
-    public function index()
+    /**
+     * Columns the top-bar search scans. Anything text-ish on the customer is
+     * fair game so a partial mobile number, a reg no or a city all work.
+     */
+    private const SEARCHABLE = [
+        'name', 'phone', 'email', 'reg_no', 'barcode',
+        'city', 'address', 'pincode', 'gst_number',
+    ];
+
+    public function index(Request $request)
     {
-        $customers = \App\Models\Customer::with('remarks')->latest()->paginate(10);
+        $query = \App\Models\Customer::with('remarks');
+
+        $term = trim((string) $request->input('search'));
+
+        if ($term !== '') {
+            // Every whitespace-separated word must match at least one column, so
+            // "kirthesh marthandam" narrows the result instead of widening it.
+            foreach (preg_split('/\s+/', $term) as $word) {
+                // Escape LIKE wildcards - a stray % would otherwise match everything.
+                $like = '%' . addcslashes($word, '%_\\') . '%';
+
+                $query->where(function ($q) use ($like) {
+                    foreach (self::SEARCHABLE as $column) {
+                        $q->orWhere($column, 'like', $like);
+                    }
+                    $q->orWhereRaw('CAST(age AS CHAR) LIKE ?', [$like]);
+                });
+            }
+        }
+
+        $customers = $query->latest()->paginate(10)->withQueryString();
+
         return view('customers.index', compact('customers'));
     }
 
